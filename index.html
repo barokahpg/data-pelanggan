@@ -1,0 +1,2899 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CATATAN PELANGGAN TOKO BAROKAH</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        body { font-family: 'Inter', sans-serif; }
+        .fade-in { animation: fadeIn 0.3s ease-in; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+        .tab-button.active { 
+            background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+            color: white;
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-blue-50 to-indigo-100 min-h-screen">
+    <!-- Header -->
+    <div class="bg-white shadow-lg border-b-4 border-blue-500">
+        <div class="max-w-6xl mx-auto px-4 py-6">
+            <div class="flex flex-col md:flex-row md:items-center md:justify-between">
+                <div class="text-center md:text-left">
+                    <h1 class="text-2xl md:text-3xl font-bold text-gray-800">
+                        🏪 CATATAN PELANGGAN TOKO BAROKAH
+                    </h1>
+                    <p class="text-gray-600 mt-2">Sistem Pencatatan Data Pelanggan Terpadu</p>
+                </div>
+                <div class="flex flex-wrap gap-2 mt-4 md:mt-0 justify-center md:justify-end">
+                    <button onclick="switchTab('tambah')" class="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transition-colors text-sm font-medium">
+                        ➕ Tambah Cepat
+                    </button>
+                    <button onclick="quickSearch()" class="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition-colors text-sm font-medium">
+                        🔍 Cari Cepat
+                    </button>
+                    <div class="bg-gray-100 px-3 py-2 rounded-lg text-sm font-medium text-gray-700">
+                        📊 <span id="headerTotalCount">0</span> data
+                    </div>
+                    <div id="connectionIndicator" class="px-3 py-2 rounded-lg text-sm font-medium">
+                        🟢 Online
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="max-w-6xl mx-auto px-4 py-6">
+        <!-- Tab Navigation -->
+        <div class="bg-white rounded-xl shadow-lg p-2 mb-6">
+            <div class="flex flex-wrap gap-2">
+                <button onclick="switchTab('lihat')" class="tab-button active flex-1 min-w-0 px-4 py-3 rounded-lg font-medium transition-all duration-200 text-center">
+                    📊 Lihat Data
+                </button>
+                <button onclick="switchTab('cari')" class="tab-button flex-1 min-w-0 px-4 py-3 rounded-lg font-medium transition-all duration-200 text-center bg-gray-100 text-gray-700 hover:bg-gray-200">
+                    🔍 Cari Data
+                </button>
+                <button onclick="switchTab('tambah')" class="tab-button flex-1 min-w-0 px-4 py-3 rounded-lg font-medium transition-all duration-200 text-center bg-gray-100 text-gray-700 hover:bg-gray-200">
+                    ➕ Tambah Data
+                </button>
+                <button onclick="switchTab('statistik')" class="tab-button flex-1 min-w-0 px-4 py-3 rounded-lg font-medium transition-all duration-200 text-center bg-gray-100 text-gray-700 hover:bg-gray-200">
+                    📈 Statistik
+                </button>
+                <button onclick="switchTab('kelola')" class="tab-button flex-1 min-w-0 px-4 py-3 rounded-lg font-medium transition-all duration-200 text-center bg-gray-100 text-gray-700 hover:bg-gray-200">
+                    ⚙️ Kelola
+                </button>
+            </div>
+        </div>
+
+        <!-- Tab Content: Lihat Data -->
+        <div id="lihat" class="tab-content active">
+            <div class="bg-white rounded-xl shadow-lg p-6">
+                <div class="flex flex-col md:flex-row md:justify-between md:items-center mb-6 gap-4">
+                    <h2 class="text-xl font-semibold text-gray-800 flex items-center">
+                        📊 Data Pelanggan Tersimpan
+                    </h2>
+                    <div class="flex flex-wrap gap-2 items-center">
+                        <select id="filterService" onchange="filterByService()" class="px-3 py-2 border border-gray-300 rounded-lg text-sm">
+                            <option value="">🔽 Semua Layanan</option>
+                            <option value="PLN">⚡ PLN</option>
+                            <option value="BPJS">🏥 BPJS</option>
+                            <option value="PDAM">💧 PDAM</option>
+                            <option value="Telkom">📞 Telkom</option>
+                            <option value="Internet">🌐 Internet</option>
+                            <option value="Gas">🔥 Gas</option>
+                            <option value="Lainnya">📋 Lainnya</option>
+                        </select>
+                        <select id="sortBy" onchange="sortData()" class="px-3 py-2 border border-gray-300 rounded-lg text-sm">
+                            <option value="newest">📅 Terbaru</option>
+                            <option value="oldest">📅 Terlama</option>
+                            <option value="name">🔤 Nama A-Z</option>
+                            <option value="service">🏷️ Layanan</option>
+                        </select>
+                        <span id="totalCount" class="bg-blue-100 text-blue-800 px-4 py-2 rounded-full text-sm font-medium">
+                            0 data
+                        </span>
+                    </div>
+                </div>
+                
+                <div id="customerList" class="space-y-4">
+                    <div class="text-center text-gray-500 py-12">
+                        <svg class="mx-auto h-16 w-16 text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                        </svg>
+                        <p class="text-lg">Belum ada data pelanggan tersimpan</p>
+                        <p class="text-sm">Tambahkan data pelanggan pertama Anda!</p>
+                        <button onclick="switchTab('tambah')" class="mt-4 bg-blue-500 text-white px-6 py-2 rounded-lg hover:bg-blue-600 transition-colors">
+                            ➕ Tambah Data Sekarang
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tab Content: Cari Data -->
+        <div id="cari" class="tab-content">
+            <div class="bg-white rounded-xl shadow-lg p-6 mb-6">
+                <h2 class="text-xl font-semibold text-gray-800 mb-4">🔍 Pencarian Data Pelanggan</h2>
+                <div class="relative">
+                    <input 
+                        type="text" 
+                        id="searchInput" 
+                        placeholder="🔍 Cari nama pelanggan, nomor, jenis layanan..."
+                        class="w-full pl-4 pr-32 py-4 border-2 border-gray-200 rounded-lg focus:border-blue-500 focus:outline-none text-lg"
+                    >
+                    <div class="absolute right-2 top-2 flex gap-1">
+                        <button onclick="searchData()" class="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition-colors">
+                            🔍 Cari
+                        </button>
+                        <button onclick="clearSearch()" class="bg-gray-500 text-white px-4 py-2 rounded-lg hover:bg-gray-600 transition-colors">
+                            ✖️ Bersih
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-xl shadow-lg p-6">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-lg font-semibold text-gray-800">📋 Hasil Pencarian</h3>
+                    <span id="searchResultCount" class="bg-green-100 text-green-800 px-3 py-1 rounded-full text-sm font-medium">
+                        Siap mencari
+                    </span>
+                </div>
+                
+                <div id="searchResults" class="space-y-3">
+                    <div class="text-center text-gray-500 py-8">
+                        <svg class="mx-auto h-12 w-12 text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                        </svg>
+                        <p>Masukkan kata kunci untuk mencari data</p>
+                        <p class="text-sm">Tekan Enter atau klik tombol Cari</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tab Content: Tambah Data -->
+        <div id="tambah" class="tab-content">
+            <!-- Google Sheets Info -->
+            <div class="bg-green-50 border-l-4 border-green-400 p-4 rounded-r-lg mb-6">
+                <div class="flex items-start">
+                    <div class="flex-shrink-0">
+                        <svg class="h-5 w-5 text-green-400 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
+                        </svg>
+                    </div>
+                    <div class="ml-3">
+                        <p class="text-sm text-green-700">
+                            <strong>☁️ GOOGLE SHEETS:</strong> Semua data tersimpan langsung di Google Sheets. 
+                            <strong>Data aman dan bisa diakses dari mana saja!</strong>
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Add New Data Form -->
+            <div class="bg-white rounded-xl shadow-lg p-6">
+                <h2 class="text-xl font-semibold text-gray-800 mb-6 flex items-center">
+                    ➕ Tambah Data Pelanggan Baru
+                </h2>
+                
+                <form id="customerForm" class="space-y-6">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Nama Pelanggan</label>
+                            <input 
+                                type="text" 
+                                id="customerName" 
+                                required
+                                class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:border-blue-500 focus:outline-none"
+                                placeholder="Masukkan nama pelanggan"
+                            >
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Jenis Layanan</label>
+                            <select 
+                                id="serviceType" 
+                                required
+                                class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:border-blue-500 focus:outline-none"
+                            >
+                                <option value="">Pilih jenis layanan</option>
+                                <option value="PLN">⚡ PLN (Listrik)</option>
+                                <option value="BPJS">🏥 BPJS Kesehatan</option>
+                                <option value="PDAM">💧 PDAM (Air)</option>
+                                <option value="Telkom">📞 Telkom</option>
+                                <option value="Internet">🌐 Internet</option>
+                                <option value="Gas">🔥 Gas PGN</option>
+                                <option value="Lainnya">📋 Lainnya</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Nomor Pelanggan</label>
+                            <input 
+                                type="text" 
+                                id="customerNumber" 
+                                required
+                                class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:border-blue-500 focus:outline-none"
+                                placeholder="Masukkan nomor pelanggan"
+                            >
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Nomor HP</label>
+                            <input 
+                                type="tel" 
+                                id="phoneNumber"
+                                class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:border-blue-500 focus:outline-none"
+                                placeholder="08xxxxxxxxxx (opsional)"
+                            >
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Catatan</label>
+                        <textarea 
+                            id="notes"
+                            rows="3"
+                            class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:border-blue-500 focus:outline-none"
+                            placeholder="Catatan tambahan (opsional)"
+                        ></textarea>
+                    </div>
+
+                    <button 
+                        type="submit"
+                        class="w-full bg-gradient-to-r from-blue-500 to-indigo-600 text-white py-4 px-6 rounded-lg font-semibold hover:from-blue-600 hover:to-indigo-700 transition-all duration-200 transform hover:scale-105 text-lg"
+                    >
+                        💾 Simpan Data Pelanggan
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Tab Content: Statistik -->
+        <div id="statistik" class="tab-content">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
+                <div class="bg-white rounded-xl shadow-lg p-6 text-center">
+                    <div class="text-3xl font-bold text-blue-600 mb-2" id="totalDataStat">0</div>
+                    <div class="text-gray-700 font-medium">📊 Total Data</div>
+                    <div class="text-sm text-gray-500 mt-1">Semua pelanggan</div>
+                </div>
+                <div class="bg-white rounded-xl shadow-lg p-6 text-center">
+                    <div class="text-3xl font-bold text-yellow-600 mb-2" id="plnCount">0</div>
+                    <div class="text-gray-700 font-medium">⚡ PLN</div>
+                    <div class="text-sm text-gray-500 mt-1">Listrik</div>
+                </div>
+                <div class="bg-white rounded-xl shadow-lg p-6 text-center">
+                    <div class="text-3xl font-bold text-green-600 mb-2" id="bpjsCount">0</div>
+                    <div class="text-gray-700 font-medium">🏥 BPJS</div>
+                    <div class="text-sm text-gray-500 mt-1">Kesehatan</div>
+                </div>
+                <div class="bg-white rounded-xl shadow-lg p-6 text-center">
+                    <div class="text-3xl font-bold text-purple-600 mb-2" id="otherCount">0</div>
+                    <div class="text-gray-700 font-medium">📋 Lainnya</div>
+                    <div class="text-sm text-gray-500 mt-1">PDAM, Telkom, dll</div>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-xl shadow-lg p-6">
+                <h3 class="text-xl font-semibold text-gray-800 mb-6">📈 Detail Statistik</h3>
+                <div id="detailStats" class="space-y-4">
+                    <div class="text-center text-gray-500 py-8">
+                        <svg class="mx-auto h-12 w-12 text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+                        </svg>
+                        <p>Statistik akan muncul setelah ada data</p>
+                        <p class="text-sm">Tambahkan beberapa data pelanggan untuk melihat statistik</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tab Content: Kelola -->
+        <div id="kelola" class="tab-content">
+            <!-- Google Sheets Status -->
+            <div class="bg-gradient-to-r from-green-50 to-blue-50 rounded-xl shadow-lg p-6 border-2 border-green-200 mb-6">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center space-x-3">
+                        <div class="bg-green-500 rounded-full p-2">
+                            <svg class="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
+                            </svg>
+                        </div>
+                        <div>
+                            <h2 class="text-xl font-semibold text-gray-800">📊 Google Sheets Terhubung</h2>
+                            <p class="text-green-700 font-medium">Data otomatis tersimpan ke Google Sheets!</p>
+                        </div>
+                    </div>
+                    <div class="flex gap-2">
+                        <button 
+                            onclick="testConnection()"
+                            class="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transition-colors text-sm"
+                        >
+                            🔗 Test Ulang
+                        </button>
+                        <button 
+                            onclick="syncFromGoogleSheets()"
+                            class="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition-colors text-sm"
+                        >
+                            🔄 Sinkron Data
+                        </button>
+                        <button 
+                            onclick="replaceWithGoogleSheetsData()"
+                            class="bg-orange-500 text-white px-4 py-2 rounded-lg hover:bg-orange-600 transition-colors text-sm"
+                        >
+                            🔄 Ganti dengan Data Google Sheets
+                        </button>
+                        <button 
+                            onclick="manualSync()"
+                            class="bg-purple-500 text-white px-4 py-2 rounded-lg hover:bg-purple-600 transition-colors text-sm"
+                        >
+                            📱 Sinkron Manual
+                        </button>
+                    </div>
+                </div>
+                <div id="connectionStatus" class="hidden mt-3"></div>
+            </div>
+
+            <!-- Offline Queue Status -->
+            <div id="offlineQueueSection" class="bg-white rounded-xl shadow-lg p-6 mb-6">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-lg font-semibold text-gray-800">📱 Status Sinkronisasi Offline</h3>
+                    <button 
+                        onclick="manualSync()"
+                        class="bg-purple-500 text-white px-4 py-2 rounded-lg hover:bg-purple-600 transition-colors text-sm"
+                    >
+                        🔄 Sinkron Sekarang
+                    </button>
+                </div>
+                <div id="offlineQueueDetails" class="space-y-3">
+                    <div class="flex items-center justify-between p-3 bg-green-50 rounded-lg">
+                        <div class="flex items-center">
+                            <div class="w-3 h-3 bg-green-500 rounded-full mr-3"></div>
+                            <span class="text-green-700 font-medium">Tidak ada data pending</span>
+                        </div>
+                        <span class="text-green-600 text-sm">Semua data tersinkron</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Export/Import Options -->
+            <div class="bg-white rounded-xl shadow-lg p-6 mb-6">
+                <h3 class="text-lg font-semibold text-gray-800 mb-4">📤 Export & Import Data</h3>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <button 
+                        onclick="openGoogleSheets()"
+                        class="bg-blue-500 text-white py-3 px-6 rounded-lg font-medium hover:bg-blue-600 transition-colors"
+                    >
+                        📊 Buka Google Sheets
+                    </button>
+                    <button 
+                        onclick="exportToJSON()"
+                        class="bg-green-500 text-white py-3 px-6 rounded-lg font-medium hover:bg-green-600 transition-colors"
+                    >
+                        📄 Export ke JSON
+                    </button>
+                    <button 
+                        onclick="importFromJSON()"
+                        class="bg-orange-500 text-white py-3 px-6 rounded-lg font-medium hover:bg-orange-600 transition-colors"
+                    >
+                        📥 Import dari JSON
+                    </button>
+                </div>
+                <input type="file" id="importFile" accept=".json" style="display: none;" onchange="handleFileImport(event)">
+            </div>
+
+            <!-- Keyboard Shortcuts Help -->
+            <div class="bg-white rounded-xl shadow-lg p-6 mb-6">
+                <h3 class="text-lg font-semibold text-gray-800 mb-4">⌨️ Shortcut Keyboard</h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="space-y-3">
+                        <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                            <span class="text-gray-700">Tambah Data Baru</span>
+                            <kbd class="px-2 py-1 bg-gray-200 rounded text-sm font-mono">Ctrl + N</kbd>
+                        </div>
+                        <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                            <span class="text-gray-700">Cari Data</span>
+                            <kbd class="px-2 py-1 bg-gray-200 rounded text-sm font-mono">Ctrl + F</kbd>
+                        </div>
+                        <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                            <span class="text-gray-700">Bersihkan Pencarian</span>
+                            <kbd class="px-2 py-1 bg-gray-200 rounded text-sm font-mono">Esc</kbd>
+                        </div>
+                    </div>
+                    <div class="space-y-3">
+                        <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                            <span class="text-gray-700">Tab Lihat Data</span>
+                            <kbd class="px-2 py-1 bg-gray-200 rounded text-sm font-mono">Ctrl + 1</kbd>
+                        </div>
+                        <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                            <span class="text-gray-700">Tab Cari Data</span>
+                            <kbd class="px-2 py-1 bg-gray-200 rounded text-sm font-mono">Ctrl + 2</kbd>
+                        </div>
+                        <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                            <span class="text-gray-700">Tab Tambah Data</span>
+                            <kbd class="px-2 py-1 bg-gray-200 rounded text-sm font-mono">Ctrl + 3</kbd>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Danger Zone -->
+            <div class="bg-white rounded-xl shadow-lg p-6 border-2 border-red-200">
+                <h3 class="text-lg font-semibold text-red-800 mb-4">⚠️ Zona Berbahaya</h3>
+                <div class="bg-red-50 p-4 rounded-lg mb-4">
+                    <p class="text-red-700 text-sm mb-3">
+                        <strong>PERINGATAN:</strong> Tindakan di bawah ini akan menghapus data secara permanen dan tidak dapat dibatalkan!
+                    </p>
+                </div>
+                <button 
+                    onclick="deleteAllData()"
+                    class="bg-red-500 text-white py-3 px-6 rounded-lg font-medium hover:bg-red-600 transition-colors w-full"
+                >
+                    🗑️ Hapus Semua Data
+                </button>
+            </div>
+
+            <!-- Script Update Guide -->
+            <div id="scriptUpdateGuide" class="bg-yellow-50 border-l-4 border-yellow-400 p-4 rounded-r-lg mt-6 hidden">
+                <div class="flex items-start">
+                    <div class="flex-shrink-0">
+                        <svg class="h-5 w-5 text-yellow-400 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"></path>
+                        </svg>
+                    </div>
+                    <div class="ml-3">
+                        <h3 class="text-lg font-semibold text-yellow-800 mb-2">🔧 Update Google Apps Script</h3>
+                        <p class="text-sm text-yellow-700 mb-3">
+                            Untuk menggunakan fitur sinkronisasi, perlu update Google Apps Script Anda:
+                        </p>
+                        <div class="bg-white p-4 rounded-lg border border-yellow-200">
+                            <h4 class="font-semibold text-gray-800 mb-2">📋 Langkah Update:</h4>
+                            <ol class="text-sm text-gray-700 space-y-2 list-decimal list-inside">
+                                <li>Buka <strong>script.google.com</strong></li>
+                                <li>Pilih project Google Apps Script Anda</li>
+                                <li>Ganti semua kode dengan kode baru di bawah</li>
+                                <li>Klik <strong>Deploy → New deployment</strong></li>
+                                <li>Pilih <strong>Web app</strong>, Execute as: <strong>Me</strong>, Access: <strong>Anyone</strong></li>
+                                <li>Klik <strong>Deploy</strong> dan copy URL baru</li>
+                            </ol>
+                            
+                            <div class="mt-4">
+                                <button 
+                                    onclick="showScriptCode()"
+                                    class="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition-colors text-sm"
+                                >
+                                    📄 Tampilkan Kode Script Lengkap
+                                </button>
+                                <button 
+                                    onclick="hideScriptGuide()"
+                                    class="bg-gray-500 text-white px-4 py-2 rounded-lg hover:bg-gray-600 transition-colors text-sm ml-2"
+                                >
+                                    ❌ Tutup Panduan
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Script Code Display -->
+            <div id="scriptCodeDisplay" class="bg-gray-50 border-2 border-gray-200 rounded-xl p-6 mt-6 hidden">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-lg font-semibold text-gray-800">📄 Kode Google Apps Script Lengkap</h3>
+                    <div class="flex gap-2">
+                        <button 
+                            onclick="copyScriptCode()"
+                            class="bg-green-500 text-white px-6 py-3 rounded-lg hover:bg-green-600 transition-colors font-semibold text-lg shadow-lg transform hover:scale-105"
+                        >
+                            📋 Copy Kode
+                        </button>
+                        <button 
+                            onclick="hideScriptCode()"
+                            class="bg-gray-500 text-white px-4 py-3 rounded-lg hover:bg-gray-600 transition-colors"
+                        >
+                            ❌ Tutup
+                        </button>
+                    </div>
+                </div>
+                <div class="bg-gray-900 text-green-400 p-4 rounded-lg overflow-x-auto">
+                    <pre id="scriptCode" class="text-sm font-mono whitespace-pre-wrap">function doPost(e) {
+  try {
+    // Parse request data
+    const data = JSON.parse(e.postData.contents);
+    const sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
+    
+    // Enhanced logging for debugging
+    console.log('📥 REQUEST RECEIVED:', JSON.stringify(data));
+    
+    // Test connection
+    if (data.action === 'test') {
+      console.log('✅ Test connection successful');
+      return ContentService
+        .createTextOutput(JSON.stringify({
+          success: true, 
+          message: 'Koneksi berhasil!',
+          timestamp: new Date().toISOString()
+        }))
+        .setMimeType(ContentService.MimeType.JSON);
+    }
+    
+    // Add new data
+    if (data.action === 'add' && data.data) {
+      const customer = data.data;
+      console.log('➕ Adding customer:', customer.name);
+      
+      // Setup headers if sheet is empty
+      if (sheet.getLastRow() === 0) {
+        sheet.getRange(1, 1, 1, 7).setValues([
+          ['ID', 'Nama', 'Jenis Layanan', 'Nomor Pelanggan', 'No HP', 'Catatan', 'Tanggal']
+        ]);
+        console.log('📋 Headers created');
+      }
+      
+      // Add data
+      sheet.appendRow([
+        customer.id,
+        customer.name,
+        customer.serviceType,
+        customer.customerNumber,
+        customer.phoneNumber || '',
+        customer.notes || '',
+        customer.dateAdded
+      ]);
+      
+      console.log('✅ Customer added successfully');
+      return ContentService
+        .createTextOutput(JSON.stringify({
+          success: true, 
+          message: 'Data berhasil disimpan',
+          id: customer.id
+        }))
+        .setMimeType(ContentService.MimeType.JSON);
+    }
+    
+    // Delete data - ENHANCED VERSION
+    if (data.action === 'delete' && data.id) {
+      const targetId = String(data.id);
+      console.log('🗑️ Delete request for ID:', targetId);
+      
+      const lastRow = sheet.getLastRow();
+      console.log('📊 Total rows in sheet:', lastRow);
+      
+      if (lastRow <= 1) {
+        console.log('❌ No data to delete');
+        return ContentService
+          .createTextOutput(JSON.stringify({
+            success: false, 
+            error: 'Tidak ada data untuk dihapus'
+          }))
+          .setMimeType(ContentService.MimeType.JSON);
+      }
+      
+      // Get all data and find matching ID
+      const values = sheet.getRange(2, 1, lastRow - 1, 7).getValues();
+      console.log('🔍 Searching through', values.length, 'rows');
+      
+      for (let i = 0; i < values.length; i++) {
+        const rowId = String(values[i][0]);
+        console.log('🔍 Checking row', i + 2, 'ID:', rowId, 'vs target:', targetId);
+        
+        if (rowId === targetId) {
+          const rowToDelete = i + 2; // +2 because array is 0-indexed and we skip header
+          console.log('✅ Found match! Deleting row:', rowToDelete);
+          
+          sheet.deleteRow(rowToDelete);
+          
+          console.log('🗑️ Row deleted successfully');
+          return ContentService
+            .createTextOutput(JSON.stringify({
+              success: true, 
+              message: 'Data berhasil dihapus',
+              deletedId: targetId,
+              deletedRow: rowToDelete
+            }))
+            .setMimeType(ContentService.MimeType.JSON);
+        }
+      }
+      
+      console.log('❌ ID not found in sheet');
+      return ContentService
+        .createTextOutput(JSON.stringify({
+          success: false, 
+          error: 'Data tidak ditemukan',
+          searchedId: targetId,
+          availableIds: values.map(row => String(row[0]))
+        }))
+        .setMimeType(ContentService.MimeType.JSON);
+    }
+    
+    // Update data
+    if (data.action === 'update' && data.data) {
+      const customer = data.data;
+      const targetId = String(customer.id);
+      console.log('✏️ Update request for ID:', targetId);
+      
+      const lastRow = sheet.getLastRow();
+      
+      if (lastRow <= 1) {
+        console.log('❌ No data to update');
+        return ContentService
+          .createTextOutput(JSON.stringify({
+            success: false, 
+            error: 'Tidak ada data untuk diupdate'
+          }))
+          .setMimeType(ContentService.MimeType.JSON);
+      }
+      
+      // Find and update the row with matching ID
+      const values = sheet.getRange(2, 1, lastRow - 1, 7).getValues();
+      
+      for (let i = 0; i < values.length; i++) {
+        const rowId = String(values[i][0]);
+        
+        if (rowId === targetId) {
+          const rowToUpdate = i + 2;
+          console.log('✅ Found match! Updating row:', rowToUpdate);
+          
+          sheet.getRange(rowToUpdate, 1, 1, 7).setValues([[
+            customer.id,
+            customer.name,
+            customer.serviceType,
+            customer.customerNumber,
+            customer.phoneNumber || '',
+            customer.notes || '',
+            customer.dateAdded
+          ]]);
+          
+          console.log('✏️ Row updated successfully');
+          return ContentService
+            .createTextOutput(JSON.stringify({
+              success: true, 
+              message: 'Data berhasil diupdate',
+              updatedId: targetId
+            }))
+            .setMimeType(ContentService.MimeType.JSON);
+        }
+      }
+      
+      console.log('❌ ID not found for update');
+      return ContentService
+        .createTextOutput(JSON.stringify({
+          success: false, 
+          error: 'Data tidak ditemukan'
+        }))
+        .setMimeType(ContentService.MimeType.JSON);
+    }
+    
+    // Delete all data
+    if (data.action === 'deleteAll') {
+      console.log('🗑️ Delete all data request');
+      
+      const lastRow = sheet.getLastRow();
+      
+      if (lastRow <= 1) {
+        console.log('ℹ️ No data to delete');
+        return ContentService
+          .createTextOutput(JSON.stringify({
+            success: true, 
+            message: 'Tidak ada data untuk dihapus'
+          }))
+          .setMimeType(ContentService.MimeType.JSON);
+      }
+      
+      // Delete all data rows (keep header)
+      const rowsToDelete = lastRow - 1;
+      sheet.deleteRows(2, rowsToDelete);
+      
+      console.log('🗑️ All data deleted:', rowsToDelete, 'rows');
+      return ContentService
+        .createTextOutput(JSON.stringify({
+          success: true, 
+          message: 'Semua data berhasil dihapus',
+          deletedRows: rowsToDelete
+        }))
+        .setMimeType(ContentService.MimeType.JSON);
+    }
+    
+    // Get all data
+    if (data.action === 'get') {
+      console.log('📊 Get all data request');
+      
+      const lastRow = sheet.getLastRow();
+      
+      if (lastRow <= 1) {
+        console.log('ℹ️ No data found');
+        return ContentService
+          .createTextOutput(JSON.stringify({
+            success: true, 
+            data: []
+          }))
+          .setMimeType(ContentService.MimeType.JSON);
+      }
+      
+      const values = sheet.getRange(2, 1, lastRow - 1, 7).getValues();
+      const customers = values.map(row => ({
+        id: row[0],
+        name: row[1],
+        serviceType: row[2],
+        customerNumber: row[3],
+        phoneNumber: row[4],
+        notes: row[5],
+        dateAdded: row[6]
+      }));
+      
+      console.log('📊 Returning', customers.length, 'customers');
+      return ContentService
+        .createTextOutput(JSON.stringify({
+          success: true, 
+          data: customers,
+          count: customers.length
+        }))
+        .setMimeType(ContentService.MimeType.JSON);
+    }
+    
+    // Search data
+    if (data.action === 'search' && data.query) {
+      console.log('🔍 Search request for:', data.query);
+      
+      const lastRow = sheet.getLastRow();
+      
+      if (lastRow <= 1) {
+        console.log('ℹ️ No data to search');
+        return ContentService
+          .createTextOutput(JSON.stringify({
+            success: true, 
+            data: [],
+            query: data.query
+          }))
+          .setMimeType(ContentService.MimeType.JSON);
+      }
+      
+      const values = sheet.getRange(2, 1, lastRow - 1, 7).getValues();
+      const searchTerm = data.query.toLowerCase();
+      
+      const filteredCustomers = values
+        .map(row => ({
+          id: row[0],
+          name: row[1],
+          serviceType: row[2],
+          customerNumber: row[3],
+          phoneNumber: row[4],
+          notes: row[5],
+          dateAdded: row[6]
+        }))
+        .filter(customer => {
+          const name = (customer.name || '').toString().toLowerCase();
+          const customerNumber = (customer.customerNumber || '').toString().toLowerCase();
+          const serviceType = (customer.serviceType || '').toString().toLowerCase();
+          const phoneNumber = (customer.phoneNumber || '').toString().toLowerCase();
+          const notes = (customer.notes || '').toString().toLowerCase();
+          
+          return name.includes(searchTerm) || 
+                 customerNumber.includes(searchTerm) || 
+                 serviceType.includes(searchTerm) || 
+                 phoneNumber.includes(searchTerm) || 
+                 notes.includes(searchTerm);
+        });
+      
+      console.log('🔍 Search results:', filteredCustomers.length, 'found');
+      return ContentService
+        .createTextOutput(JSON.stringify({
+          success: true, 
+          data: filteredCustomers,
+          query: data.query,
+          count: filteredCustomers.length
+        }))
+        .setMimeType(ContentService.MimeType.JSON);
+    }
+    
+    // Unknown action
+    console.log('❌ Unknown action:', data.action);
+    return ContentService
+      .createTextOutput(JSON.stringify({
+        success: false, 
+        error: 'Action tidak dikenali: ' + data.action,
+        availableActions: ['test', 'add', 'delete', 'update', 'deleteAll', 'get', 'search']
+      }))
+      .setMimeType(ContentService.MimeType.JSON);
+      
+  } catch (error) {
+    console.error('💥 SCRIPT ERROR:', error);
+    return ContentService
+      .createTextOutput(JSON.stringify({
+        success: false, 
+        error: 'Script error: ' + error.toString(),
+        stack: error.stack
+      }))
+      .setMimeType(ContentService.MimeType.JSON);
+  }
+}
+
+// Helper function to get sheet info (optional)
+function getSheetInfo() {
+  const sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
+  return {
+    name: sheet.getName(),
+    rows: sheet.getLastRow(),
+    columns: sheet.getLastColumn(),
+    url: SpreadsheetApp.getActiveSpreadsheet().getUrl()
+  };
+}</pre>
+                </div>
+            </div>
+        </div>
+
+
+    </div>
+
+    <!-- Success/Error Messages -->
+    <div id="messageContainer" class="fixed top-4 right-4 z-50"></div>
+
+    <!-- Footer -->
+    <footer class="bg-white border-t-2 border-gray-200 mt-12">
+        <div class="max-w-6xl mx-auto px-4 py-8">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div>
+                    <h3 class="font-semibold text-gray-800 mb-3">🏪 Toko Barokah</h3>
+                    <p class="text-gray-600 text-sm">Sistem pencatatan pelanggan digital yang terintegrasi dengan Google Sheets untuk kemudahan akses dan backup otomatis.</p>
+                </div>
+                <div>
+                    <h3 class="font-semibold text-gray-800 mb-3">✨ Fitur Utama</h3>
+                    <ul class="text-gray-600 text-sm space-y-1">
+                        <li>• Pencatatan data pelanggan lengkap</li>
+                        <li>• Pencarian cepat dan akurat</li>
+                        <li>• Sinkronisasi Google Sheets</li>
+                        <li>• Statistik dan laporan</li>
+                        <li>• Export/Import data</li>
+                    </ul>
+                </div>
+                <div>
+                    <h3 class="font-semibold text-gray-800 mb-3">📊 Status Sistem</h3>
+                    <div class="space-y-2 text-sm">
+                        <div class="flex items-center">
+                            <div class="w-3 h-3 bg-green-500 rounded-full mr-2"></div>
+                            <span class="text-gray-600">Google Sheets: Terhubung</span>
+                        </div>
+                        <div class="flex items-center">
+                            <div class="w-3 h-3 bg-blue-500 rounded-full mr-2"></div>
+                            <span class="text-gray-600">Data: <span id="footerDataCount">0</span> pelanggan</span>
+                        </div>
+                        <div class="flex items-center">
+                            <div id="offlineIndicator" class="w-3 h-3 bg-green-500 rounded-full mr-2"></div>
+                            <span class="text-gray-600">Offline: <span id="offlineQueueCount">0</span> pending</span>
+                        </div>
+                        <div class="flex items-center">
+                            <div class="w-3 h-3 bg-purple-500 rounded-full mr-2"></div>
+                            <span class="text-gray-600">Versi: 2.0</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="border-t border-gray-200 mt-6 pt-6 text-center">
+                <p class="text-gray-500 text-sm">
+                    © 2024 Sistem Catatan Pelanggan Toko Barokah - Dibuat dengan ❤️ untuk kemudahan bisnis Anda
+                </p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Data storage - now using Google Sheets as primary database
+        let customerData = [];
+        let currentSearchTerm = '';
+        let isLoading = false;
+        
+        // Offline sync functionality
+        let offlineQueue = [];
+        let isOnline = navigator.onLine;
+        let syncInProgress = false;
+
+        // Tab switching
+        function switchTab(tabName) {
+            // Hide all tab contents
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.classList.remove('active');
+            });
+            
+            // Remove active class from all tab buttons
+            document.querySelectorAll('.tab-button').forEach(button => {
+                button.classList.remove('active');
+                button.className = 'tab-button flex-1 min-w-0 px-4 py-3 rounded-lg font-medium transition-all duration-200 text-center bg-gray-100 text-gray-700 hover:bg-gray-200';
+            });
+            
+            // Show selected tab content
+            document.getElementById(tabName).classList.add('active');
+            
+            // Add active class to clicked tab button
+            event.target.classList.add('active');
+            event.target.className = 'tab-button active flex-1 min-w-0 px-4 py-3 rounded-lg font-medium transition-all duration-200 text-center';
+            
+            // Refresh data when switching to certain tabs
+            if (tabName === 'lihat') {
+                displayCustomers();
+                updateTotalCount();
+            } else if (tabName === 'statistik') {
+                updateStats();
+                updateDetailStats();
+            }
+        }
+
+        // Initialize app
+        document.addEventListener('DOMContentLoaded', function() {
+            // Load saved Google Sheets URL
+            const savedUrl = localStorage.getItem('googleSheetsUrl');
+            if (!savedUrl) {
+                const providedUrl = 'https://script.google.com/macros/s/AKfycbyOueIWtgjajR6BEH3aXybRGWyLjztdD934Jzts-607Fphhdp_RZR2Wj6lBTqxw8wuc/exec';
+                localStorage.setItem('googleSheetsUrl', providedUrl);
+            }
+            
+            // Force update to new URL if different
+            const currentUrl = localStorage.getItem('googleSheetsUrl');
+            const newUrl = 'https://script.google.com/macros/s/AKfycbyOueIWtgjajR6BEH3aXybRGWyLjztdD934Jzts-607Fphhdp_RZR2Wj6lBTqxw8wuc/exec';
+            if (currentUrl !== newUrl) {
+                localStorage.setItem('googleSheetsUrl', newUrl);
+                showMessage('🔄 URL Google Apps Script diperbarui!', 'info');
+            }
+            
+            // Add sample data if no data exists
+            addSampleDataIfEmpty();
+            
+            // Load all data from Google Sheets
+            loadAllDataFromGoogleSheets();
+            
+            // Add keyboard shortcuts
+            setupKeyboardShortcuts();
+            
+            // Initialize offline sync
+            initializeOfflineSync();
+            
+            // Show welcome message
+            setTimeout(() => {
+                showMessage('🎉 Selamat datang di Sistem Catatan Pelanggan Toko Barokah!', 'success');
+            }, 1000);
+        });
+
+        // Initialize offline sync functionality
+        function initializeOfflineSync() {
+            // Load offline queue from localStorage
+            const savedQueue = localStorage.getItem('offlineQueue');
+            if (savedQueue) {
+                try {
+                    offlineQueue = JSON.parse(savedQueue);
+                } catch (e) {
+                    offlineQueue = [];
+                }
+            }
+            
+            // Update UI
+            updateConnectionStatus();
+            updateOfflineQueueStatus();
+            
+            // Listen for online/offline events
+            window.addEventListener('online', handleOnline);
+            window.addEventListener('offline', handleOffline);
+            
+            // Auto-sync when online
+            if (isOnline && offlineQueue.length > 0) {
+                setTimeout(() => {
+                    syncOfflineQueue();
+                }, 2000);
+            }
+        }
+
+        // Handle online event
+        function handleOnline() {
+            isOnline = true;
+            updateConnectionStatus();
+            showMessage('🟢 Koneksi internet pulih! Memulai sinkronisasi...', 'success');
+            
+            // Auto-sync after 1 second delay
+            setTimeout(() => {
+                syncOfflineQueue();
+            }, 1000);
+        }
+
+        // Handle offline event
+        function handleOffline() {
+            isOnline = false;
+            updateConnectionStatus();
+            showMessage('🔴 Koneksi internet terputus. Data akan disimpan offline.', 'info');
+        }
+
+        // Update connection status indicator
+        function updateConnectionStatus() {
+            const indicator = document.getElementById('connectionIndicator');
+            if (isOnline) {
+                indicator.className = 'bg-green-100 text-green-800 px-3 py-2 rounded-lg text-sm font-medium';
+                indicator.textContent = '🟢 Online';
+            } else {
+                indicator.className = 'bg-red-100 text-red-800 px-3 py-2 rounded-lg text-sm font-medium';
+                indicator.textContent = '🔴 Offline';
+            }
+        }
+
+        // Update offline queue status
+        function updateOfflineQueueStatus() {
+            const count = offlineQueue.length;
+            const countElement = document.getElementById('offlineQueueCount');
+            const indicatorElement = document.getElementById('offlineIndicator');
+            
+            countElement.textContent = count;
+            
+            if (count > 0) {
+                indicatorElement.className = 'w-3 h-3 bg-orange-500 rounded-full mr-2';
+            } else {
+                indicatorElement.className = 'w-3 h-3 bg-green-500 rounded-full mr-2';
+            }
+            
+            // Update detailed offline queue section
+            updateOfflineQueueDetails();
+        }
+
+        // Update offline queue details section
+        function updateOfflineQueueDetails() {
+            const detailsContainer = document.getElementById('offlineQueueDetails');
+            const count = offlineQueue.length;
+            
+            if (count === 0) {
+                detailsContainer.innerHTML = `
+                    <div class="flex items-center justify-between p-3 bg-green-50 rounded-lg">
+                        <div class="flex items-center">
+                            <div class="w-3 h-3 bg-green-500 rounded-full mr-3"></div>
+                            <span class="text-green-700 font-medium">Tidak ada data pending</span>
+                        </div>
+                        <span class="text-green-600 text-sm">Semua data tersinkron</span>
+                    </div>
+                `;
+                return;
+            }
+            
+            // Group by action type
+            const actionCounts = {
+                add: offlineQueue.filter(item => item.action === 'add').length,
+                update: offlineQueue.filter(item => item.action === 'update').length,
+                delete: offlineQueue.filter(item => item.action === 'delete').length
+            };
+            
+            let html = `
+                <div class="flex items-center justify-between p-3 bg-orange-50 rounded-lg mb-3">
+                    <div class="flex items-center">
+                        <div class="w-3 h-3 bg-orange-500 rounded-full mr-3"></div>
+                        <span class="text-orange-700 font-medium">${count} data menunggu sinkronisasi</span>
+                    </div>
+                    <span class="text-orange-600 text-sm">Akan otomatis sinkron saat online</span>
+                </div>
+            `;
+            
+            if (actionCounts.add > 0) {
+                html += `
+                    <div class="flex items-center justify-between p-2 bg-blue-50 rounded-lg">
+                        <span class="text-blue-700">➕ Data baru</span>
+                        <span class="text-blue-600 font-semibold">${actionCounts.add}</span>
+                    </div>
+                `;
+            }
+            
+            if (actionCounts.update > 0) {
+                html += `
+                    <div class="flex items-center justify-between p-2 bg-yellow-50 rounded-lg">
+                        <span class="text-yellow-700">✏️ Update data</span>
+                        <span class="text-yellow-600 font-semibold">${actionCounts.update}</span>
+                    </div>
+                `;
+            }
+            
+            if (actionCounts.delete > 0) {
+                html += `
+                    <div class="flex items-center justify-between p-2 bg-red-50 rounded-lg">
+                        <span class="text-red-700">🗑️ Hapus data</span>
+                        <span class="text-red-600 font-semibold">${actionCounts.delete}</span>
+                    </div>
+                `;
+            }
+            
+            detailsContainer.innerHTML = html;
+        }
+
+        // Add item to offline queue
+        function addToOfflineQueue(action, data, originalData = null) {
+            const queueItem = {
+                id: Date.now() + Math.random(),
+                action: action, // 'add', 'update', 'delete'
+                data: data,
+                originalData: originalData,
+                timestamp: new Date().toISOString(),
+                retryCount: 0
+            };
+            
+            offlineQueue.push(queueItem);
+            saveOfflineQueue();
+            updateOfflineQueueStatus();
+            
+            console.log('📦 Added to offline queue:', queueItem);
+        }
+
+        // Save offline queue to localStorage
+        function saveOfflineQueue() {
+            localStorage.setItem('offlineQueue', JSON.stringify(offlineQueue));
+        }
+
+        // Sync offline queue to Google Sheets
+        function syncOfflineQueue() {
+            if (syncInProgress || offlineQueue.length === 0 || !isOnline) {
+                return;
+            }
+            
+            syncInProgress = true;
+            showMessage(`🔄 Menyinkronkan ${offlineQueue.length} data offline...`, 'info');
+            
+            const totalItems = offlineQueue.length;
+            let processedItems = 0;
+            let successCount = 0;
+            let errorCount = 0;
+            
+            const processNext = () => {
+                if (offlineQueue.length === 0) {
+                    syncInProgress = false;
+                    updateOfflineQueueStatus();
+                    
+                    if (successCount > 0) {
+                        showMessage(`✅ Sinkronisasi selesai! ${successCount} data berhasil disinkron`, 'success');
+                        // Refresh data from Google Sheets
+                        loadAllDataFromGoogleSheets();
+                    }
+                    if (errorCount > 0) {
+                        showMessage(`⚠️ ${errorCount} data gagal disinkron, akan dicoba lagi nanti`, 'error');
+                    }
+                    return;
+                }
+                
+                const item = offlineQueue[0];
+                processedItems++;
+                
+                console.log(`🔄 Processing offline item ${processedItems}/${totalItems}:`, item);
+                
+                // Process based on action type
+                if (item.action === 'add') {
+                    syncAddItem(item);
+                } else if (item.action === 'update') {
+                    syncUpdateItem(item);
+                } else if (item.action === 'delete') {
+                    syncDeleteItem(item);
+                } else {
+                    // Unknown action, remove from queue
+                    offlineQueue.shift();
+                    saveOfflineQueue();
+                    processNext();
+                }
+            };
+            
+            // Start processing
+            processNext();
+        }
+
+        // Sync add item
+        function syncAddItem(item) {
+            const url = localStorage.getItem('googleSheetsUrl');
+            const requestData = { action: 'add', data: item.data };
+            
+            fetch(url, {
+                method: 'POST',
+                headers: { 'Content-Type': 'text/plain' },
+                body: JSON.stringify(requestData)
+            })
+            .then(response => response.text())
+            .then(text => {
+                try {
+                    const result = JSON.parse(text);
+                    if (result.success) {
+                        // Success - remove from queue
+                        offlineQueue.shift();
+                        saveOfflineQueue();
+                        console.log('✅ Offline add synced:', item.data.name);
+                        
+                        // Continue with next item
+                        setTimeout(() => {
+                            const processNext = arguments.callee.caller;
+                            if (processNext) processNext();
+                        }, 500);
+                    } else {
+                        throw new Error(result.error);
+                    }
+                } catch (e) {
+                    handleSyncError(item, e);
+                }
+            })
+            .catch(error => {
+                handleSyncError(item, error);
+            });
+        }
+
+        // Sync update item
+        function syncUpdateItem(item) {
+            const url = localStorage.getItem('googleSheetsUrl');
+            const requestData = { action: 'update', data: item.data };
+            
+            fetch(url, {
+                method: 'POST',
+                headers: { 'Content-Type': 'text/plain' },
+                body: JSON.stringify(requestData)
+            })
+            .then(response => response.text())
+            .then(text => {
+                try {
+                    const result = JSON.parse(text);
+                    if (result.success) {
+                        // Success - remove from queue
+                        offlineQueue.shift();
+                        saveOfflineQueue();
+                        console.log('✅ Offline update synced:', item.data.name);
+                        
+                        // Continue with next item
+                        setTimeout(() => {
+                            const processNext = arguments.callee.caller;
+                            if (processNext) processNext();
+                        }, 500);
+                    } else {
+                        throw new Error(result.error);
+                    }
+                } catch (e) {
+                    handleSyncError(item, e);
+                }
+            })
+            .catch(error => {
+                handleSyncError(item, error);
+            });
+        }
+
+        // Sync delete item
+        function syncDeleteItem(item) {
+            const url = localStorage.getItem('googleSheetsUrl');
+            const requestData = { action: 'delete', id: item.data.id };
+            
+            fetch(url, {
+                method: 'POST',
+                headers: { 'Content-Type': 'text/plain' },
+                body: JSON.stringify(requestData)
+            })
+            .then(response => response.text())
+            .then(text => {
+                try {
+                    const result = JSON.parse(text);
+                    if (result.success) {
+                        // Success - remove from queue
+                        offlineQueue.shift();
+                        saveOfflineQueue();
+                        console.log('✅ Offline delete synced:', item.data.name);
+                        
+                        // Continue with next item
+                        setTimeout(() => {
+                            const processNext = arguments.callee.caller;
+                            if (processNext) processNext();
+                        }, 500);
+                    } else {
+                        throw new Error(result.error);
+                    }
+                } catch (e) {
+                    handleSyncError(item, e);
+                }
+            })
+            .catch(error => {
+                handleSyncError(item, error);
+            });
+        }
+
+        // Handle sync error
+        function handleSyncError(item, error) {
+            console.error('❌ Sync error for item:', item, error);
+            
+            item.retryCount = (item.retryCount || 0) + 1;
+            
+            if (item.retryCount >= 3) {
+                // Max retries reached, remove from queue
+                offlineQueue.shift();
+                saveOfflineQueue();
+                console.log('❌ Max retries reached, removing item:', item);
+            } else {
+                // Move to end of queue for retry
+                offlineQueue.shift();
+                offlineQueue.push(item);
+                saveOfflineQueue();
+                console.log('🔄 Item moved to end for retry:', item);
+            }
+            
+            // Continue with next item
+            setTimeout(() => {
+                const processNext = arguments.callee.caller;
+                if (processNext) processNext();
+            }, 1000);
+        }
+
+        // Manual sync trigger
+        function manualSync() {
+            if (!isOnline) {
+                showMessage('🔴 Tidak ada koneksi internet untuk sinkronisasi', 'error');
+                return;
+            }
+            
+            if (offlineQueue.length === 0) {
+                showMessage('✅ Tidak ada data offline yang perlu disinkron', 'info');
+                return;
+            }
+            
+            syncOfflineQueue();
+        }
+
+        // Setup keyboard shortcuts
+        function setupKeyboardShortcuts() {
+            document.addEventListener('keydown', function(e) {
+                // Ctrl/Cmd + N = New customer
+                if ((e.ctrlKey || e.metaKey) && e.key === 'n') {
+                    e.preventDefault();
+                    switchTab('tambah');
+                    document.getElementById('customerName').focus();
+                }
+                
+                // Ctrl/Cmd + F = Search
+                if ((e.ctrlKey || e.metaKey) && e.key === 'f') {
+                    e.preventDefault();
+                    switchTab('cari');
+                    document.getElementById('searchInput').focus();
+                }
+                
+                // Ctrl/Cmd + 1-5 = Switch tabs
+                if ((e.ctrlKey || e.metaKey) && e.key >= '1' && e.key <= '5') {
+                    e.preventDefault();
+                    const tabs = ['lihat', 'cari', 'tambah', 'statistik', 'kelola'];
+                    const tabIndex = parseInt(e.key) - 1;
+                    if (tabs[tabIndex]) {
+                        switchTab(tabs[tabIndex]);
+                    }
+                }
+                
+                // Escape = Clear search or cancel edit
+                if (e.key === 'Escape') {
+                    const activeTab = document.querySelector('.tab-content.active');
+                    if (activeTab && activeTab.id === 'cari') {
+                        clearSearch();
+                    }
+                }
+            });
+        }
+
+        // Add sample data for testing
+        function addSampleDataIfEmpty() {
+            // Check if we already have sample data
+            if (localStorage.getItem('sampleDataAdded') === 'true') {
+                return;
+            }
+
+            const sampleData = [
+                { id: 1001, name: 'Budi Santoso', serviceType: 'PLN', customerNumber: '123456789012', phoneNumber: '081234567890', notes: 'Rumah utama', dateAdded: '15/12/2024' },
+                { id: 1002, name: 'Siti Nurhaliza', serviceType: 'BPJS', customerNumber: '0001234567890', phoneNumber: '082345678901', notes: 'Keluarga 4 orang', dateAdded: '15/12/2024' },
+                { id: 1003, name: 'Ahmad Wijaya', serviceType: 'PDAM', customerNumber: 'PD123456789', phoneNumber: '083456789012', notes: '', dateAdded: '15/12/2024' },
+                { id: 1004, name: 'Dewi Sartika', serviceType: 'Telkom', customerNumber: '021-12345678', phoneNumber: '084567890123', notes: 'Paket internet unlimited', dateAdded: '15/12/2024' },
+                { id: 1005, name: 'Rudi Hartono', serviceType: 'PLN', customerNumber: '987654321098', phoneNumber: '085678901234', notes: 'Toko kelontong', dateAdded: '15/12/2024' },
+                { id: 1006, name: 'Maya Sari', serviceType: 'BPJS', customerNumber: '0009876543210', phoneNumber: '086789012345', notes: 'Ibu hamil', dateAdded: '15/12/2024' },
+                { id: 1007, name: 'Joko Susilo', serviceType: 'Gas', customerNumber: 'GS789012345', phoneNumber: '087890123456', notes: 'Warung makan', dateAdded: '15/12/2024' },
+                { id: 1008, name: 'Rina Melati', serviceType: 'Internet', customerNumber: 'IN456789012', phoneNumber: '088901234567', notes: 'Paket 50 Mbps', dateAdded: '15/12/2024' },
+                { id: 1009, name: 'Bambang Pamungkas', serviceType: 'PLN', customerNumber: '555666777888', phoneNumber: '089012345678', notes: 'Rumah kontrakan', dateAdded: '15/12/2024' },
+                { id: 1010, name: 'Lestari Indah', serviceType: 'PDAM', customerNumber: 'PD987654321', phoneNumber: '081123456789', notes: 'Apartemen lantai 5', dateAdded: '15/12/2024' },
+                { id: 1011, name: 'Hendra Gunawan', serviceType: 'BPJS', customerNumber: '0005555666777', phoneNumber: '082234567890', notes: 'Pensiunan PNS', dateAdded: '15/12/2024' },
+                { id: 1012, name: 'Fitri Handayani', serviceType: 'Telkom', customerNumber: '022-87654321', phoneNumber: '083345678901', notes: 'Kantor cabang', dateAdded: '15/12/2024' },
+                { id: 1013, name: 'Agus Salim', serviceType: 'PLN', customerNumber: '111222333444', phoneNumber: '084456789012', notes: 'Bengkel motor', dateAdded: '15/12/2024' },
+                { id: 1014, name: 'Nurul Aini', serviceType: 'Gas', customerNumber: 'GS123987456', phoneNumber: '085567890123', notes: 'Rumah makan padang', dateAdded: '15/12/2024' },
+                { id: 1015, name: 'Doni Prasetyo', serviceType: 'Internet', customerNumber: 'IN789123456', phoneNumber: '086678901234', notes: 'Gaming center', dateAdded: '15/12/2024' },
+                { id: 1016, name: 'Sri Wahyuni', serviceType: 'BPJS', customerNumber: '0007777888999', phoneNumber: '087789012345', notes: 'Keluarga besar 8 orang', dateAdded: '15/12/2024' },
+                { id: 1017, name: 'Eko Prasetio', serviceType: 'PDAM', customerNumber: 'PD555444333', phoneNumber: '088890123456', notes: 'Kos-kosan 20 kamar', dateAdded: '15/12/2024' },
+                { id: 1018, name: 'Indira Sari', serviceType: 'PLN', customerNumber: '999888777666', phoneNumber: '089901234567', notes: 'Salon kecantikan', dateAdded: '15/12/2024' },
+                { id: 1019, name: 'Fajar Sidik', serviceType: 'Lainnya', customerNumber: 'LN123456789', phoneNumber: '081012345678', notes: 'Asuransi jiwa', dateAdded: '15/12/2024' },
+                { id: 1020, name: 'Ratna Dewi', serviceType: 'Telkom', customerNumber: '024-11223344', phoneNumber: '082123456789', notes: 'Sekolah dasar', dateAdded: '15/12/2024' }
+            ];
+
+            // Add sample data to local storage
+            customerData = sampleData;
+            localStorage.setItem('sampleDataAdded', 'true');
+            
+            // Display the sample data immediately
+            displayCustomers();
+            updateTotalCount();
+            
+            showMessage('🎯 20 data pelanggan contoh telah ditambahkan untuk testing!', 'success');
+        }
+
+        // Form submission
+        document.getElementById('customerForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            if (isLoading) {
+                showMessage('⏳ Tunggu proses sebelumnya selesai...', 'info');
+                return;
+            }
+            
+            const newCustomer = {
+                id: Date.now(),
+                name: document.getElementById('customerName').value.trim(),
+                serviceType: document.getElementById('serviceType').value,
+                customerNumber: document.getElementById('customerNumber').value.trim(),
+                phoneNumber: document.getElementById('phoneNumber').value.trim(),
+                notes: document.getElementById('notes').value.trim(),
+                dateAdded: new Date().toLocaleDateString('id-ID')
+            };
+
+            // Check for duplicate customer number
+            const isDuplicate = customerData.some(customer => 
+                customer.customerNumber === newCustomer.customerNumber && 
+                customer.serviceType === newCustomer.serviceType
+            );
+
+            if (isDuplicate) {
+                showMessage('⚠️ Nomor pelanggan sudah ada untuk layanan ini!', 'error');
+                return;
+            }
+
+            // Save directly to Google Sheets
+            addToGoogleSheets(newCustomer);
+        });
+
+        // Search functionality - GOOGLE SHEETS VERSION
+        function searchData() {
+            const searchInput = document.getElementById('searchInput');
+            const searchTerm = searchInput.value.trim();
+            currentSearchTerm = searchTerm;
+            
+            console.log('🔍 SEARCH DEBUG:');
+            console.log('- Search term:', `"${searchTerm}"`);
+            
+            // Show loading state
+            document.getElementById('searchResults').innerHTML = `
+                <div class="text-center text-blue-500 py-8">
+                    <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mb-4"></div>
+                    <p>🔍 Mencari data untuk "${searchInput.value}" di Google Sheets...</p>
+                </div>
+            `;
+            
+            // Handle empty search term
+            if (searchTerm === '') {
+                setTimeout(() => {
+                    document.getElementById('searchResults').innerHTML = `
+                        <div class="text-center text-gray-500 py-8">
+                            <svg class="mx-auto h-12 w-12 text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                            </svg>
+                            <p>Masukkan kata kunci untuk mencari data</p>
+                            <p class="text-sm">Tekan Enter atau klik tombol Cari</p>
+                        </div>
+                    `;
+                    document.getElementById('searchResultCount').textContent = 'Siap mencari';
+                    document.getElementById('searchResultCount').className = 'bg-green-100 text-green-800 px-3 py-1 rounded-full text-sm font-medium';
+                    showMessage('🔍 Pencarian kosong, masukkan kata kunci', 'info');
+                }, 500);
+                return;
+            }
+
+            // Search directly from Google Sheets
+            searchFromGoogleSheets(searchTerm, searchInput.value);
+        }
+
+        // Search from Google Sheets
+        function searchFromGoogleSheets(searchTerm, originalTerm) {
+            const url = localStorage.getItem('googleSheetsUrl');
+            if (!url) {
+                showMessage('❌ URL Google Apps Script tidak ditemukan', 'error');
+                return;
+            }
+
+            const requestData = { action: 'search', query: searchTerm };
+
+            fetch(url, {
+                method: 'POST',
+                headers: { 'Content-Type': 'text/plain' },
+                body: JSON.stringify(requestData)
+            })
+            .then(response => {
+                if (!response.ok) throw new Error(`HTTP ${response.status}`);
+                return response.text();
+            })
+            .then(text => {
+                try {
+                    const result = JSON.parse(text);
+                    if (result.success) {
+                        const filteredData = result.data || [];
+                        
+                        console.log('🎯 SEARCH RESULTS FROM GOOGLE SHEETS:');
+                        console.log('- Total found:', filteredData.length);
+                        console.log('- Results:', filteredData.map(c => c.name));
+
+                        // Always display results (even if empty)
+                        displaySearchResults(filteredData, originalTerm);
+                        
+                        // Update result count
+                        document.getElementById('searchResultCount').textContent = `${filteredData.length} hasil`;
+                        document.getElementById('searchResultCount').className = filteredData.length > 0 ? 
+                            'bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm font-medium' :
+                            'bg-red-100 text-red-800 px-3 py-1 rounded-full text-sm font-medium';
+                        
+                        // Show appropriate message
+                        if (filteredData.length === 0) {
+                            showMessage(`❌ Data tidak ditemukan untuk "${originalTerm}"`, 'error');
+                        } else {
+                            showMessage(`✅ Ditemukan ${filteredData.length} data untuk "${originalTerm}"`, 'success');
+                        }
+                    } else {
+                        throw new Error(result.error || 'Gagal mencari data');
+                    }
+                } catch (parseError) {
+                    console.error('Parse error:', parseError);
+                    // Fallback to local search if Google Sheets search fails
+                    performLocalSearch(searchTerm, originalTerm);
+                }
+            })
+            .catch(error => {
+                console.error('Search error:', error);
+                // Fallback to local search if Google Sheets search fails
+                performLocalSearch(searchTerm, originalTerm);
+            });
+        }
+
+        // Fallback local search
+        function performLocalSearch(searchTerm, originalTerm) {
+            console.log('🔄 Fallback to local search');
+            
+            // Handle no data available
+            if (customerData.length === 0) {
+                document.getElementById('searchResults').innerHTML = `
+                    <div class="text-center text-gray-500 py-8">
+                        <svg class="mx-auto h-12 w-12 text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                        </svg>
+                        <p class="text-lg font-semibold text-gray-600">Belum ada data untuk dicari</p>
+                        <p class="text-sm text-gray-500 mt-2">Tambahkan data pelanggan terlebih dahulu</p>
+                        <button onclick="switchTab('tambah')" class="mt-4 bg-blue-500 text-white px-6 py-2 rounded-lg hover:bg-blue-600 transition-colors">
+                            ➕ Tambah Data Sekarang
+                        </button>
+                    </div>
+                `;
+                document.getElementById('searchResultCount').textContent = 'Tidak ada data';
+                document.getElementById('searchResultCount').className = 'bg-gray-100 text-gray-800 px-3 py-1 rounded-full text-sm font-medium';
+                showMessage('❌ Belum ada data untuk dicari', 'error');
+                return;
+            }
+
+            // Perform local search
+            const filteredData = customerData.filter(customer => {
+                const name = (customer.name || '').toLowerCase();
+                const customerNumber = (customer.customerNumber || '').toLowerCase();
+                const serviceType = (customer.serviceType || '').toLowerCase();
+                const phoneNumber = (customer.phoneNumber || '').toLowerCase();
+                const notes = (customer.notes || '').toLowerCase();
+                
+                return name.includes(searchTerm.toLowerCase()) || 
+                       customerNumber.includes(searchTerm.toLowerCase()) || 
+                       serviceType.includes(searchTerm.toLowerCase()) || 
+                       phoneNumber.includes(searchTerm.toLowerCase()) || 
+                       notes.includes(searchTerm.toLowerCase());
+            });
+
+            // Display results
+            displaySearchResults(filteredData, originalTerm);
+            
+            // Update result count
+            document.getElementById('searchResultCount').textContent = `${filteredData.length} hasil`;
+            document.getElementById('searchResultCount').className = filteredData.length > 0 ? 
+                'bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm font-medium' :
+                'bg-red-100 text-red-800 px-3 py-1 rounded-full text-sm font-medium';
+            
+            // Show appropriate message
+            if (filteredData.length === 0) {
+                showMessage(`❌ Data tidak ditemukan untuk "${originalTerm}" (pencarian lokal)`, 'error');
+            } else {
+                showMessage(`✅ Ditemukan ${filteredData.length} data untuk "${originalTerm}" (pencarian lokal)`, 'success');
+            }
+        }
+
+        // Clear search
+        function clearSearch() {
+            document.getElementById('searchInput').value = '';
+            currentSearchTerm = '';
+            document.getElementById('searchResults').innerHTML = `
+                <div class="text-center text-gray-500 py-8">
+                    <svg class="mx-auto h-12 w-12 text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                    </svg>
+                    <p>Masukkan kata kunci untuk mencari data</p>
+                    <p class="text-sm">Tekan Enter atau klik tombol Cari</p>
+                </div>
+            `;
+            document.getElementById('searchResultCount').textContent = 'Siap mencari';
+            document.getElementById('searchResultCount').className = 'bg-green-100 text-green-800 px-3 py-1 rounded-full text-sm font-medium';
+            showMessage('🔍 Pencarian dibersihkan', 'info');
+        }
+
+        // Search on Enter key
+        document.getElementById('searchInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                searchData();
+            }
+        });
+
+        // Display search results - FIXED VERSION
+        function displaySearchResults(dataToShow, searchTerm = '') {
+            const container = document.getElementById('searchResults');
+            
+            console.log('📋 DISPLAYING SEARCH RESULTS:');
+            console.log('- Data to show:', dataToShow.length);
+            console.log('- Search term:', searchTerm);
+            
+            if (dataToShow.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center text-red-50 border-2 border-red-200 rounded-xl py-12 px-6">
+                        <div class="bg-red-100 rounded-full w-20 h-20 flex items-center justify-center mx-auto mb-6">
+                            <svg class="w-10 h-10 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.172 16.172a4 4 0 015.656 0M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                            </svg>
+                        </div>
+                        <h3 class="text-xl font-bold text-red-700 mb-3">❌ Data Tidak Ditemukan</h3>
+                        <p class="text-red-600 mb-2">Tidak ada data yang cocok dengan kata kunci:</p>
+                        <p class="text-lg font-semibold text-red-800 bg-red-100 px-4 py-2 rounded-lg inline-block mb-4">"${searchTerm}"</p>
+                        <div class="text-sm text-red-600 mb-6">
+                            <p class="mb-2">💡 <strong>Tips pencarian:</strong></p>
+                            <ul class="text-left max-w-md mx-auto space-y-1">
+                                <li>• Coba kata kunci yang lebih pendek</li>
+                                <li>• Periksa ejaan kata kunci</li>
+                                <li>• Coba cari dengan nomor pelanggan</li>
+                                <li>• Coba cari dengan jenis layanan (PLN, BPJS, dll)</li>
+                            </ul>
+                        </div>
+                        <div class="flex gap-3 justify-center">
+                            <button onclick="clearSearch()" class="bg-blue-500 text-white px-6 py-3 rounded-lg hover:bg-blue-600 transition-colors font-semibold">
+                                🔍 Coba Lagi
+                            </button>
+                            <button onclick="switchTab('tambah')" class="bg-green-500 text-white px-6 py-3 rounded-lg hover:bg-green-600 transition-colors font-semibold">
+                                ➕ Tambah Data
+                            </button>
+                        </div>
+                    </div>
+                `;
+                return;
+            }
+
+            // Display found results
+            container.innerHTML = `
+                <div class="mb-4 p-4 bg-green-50 border-2 border-green-200 rounded-lg">
+                    <div class="flex items-center justify-center text-green-700">
+                        <svg class="w-6 h-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                        <span class="font-semibold">✅ Ditemukan ${dataToShow.length} data untuk "${searchTerm}"</span>
+                    </div>
+                </div>
+                <div class="space-y-4">
+                    ${dataToShow.map(customer => `
+                        <div class="border-2 border-gray-100 rounded-lg p-4 hover:border-blue-300 transition-colors fade-in bg-white shadow-sm">
+                            <div class="flex justify-between items-start mb-3">
+                                <div class="flex-1">
+                                    <h3 class="font-semibold text-lg text-gray-800">${customer.name}</h3>
+                                    <div class="flex items-center mt-1">
+                                        <span class="inline-block px-3 py-1 rounded-full text-sm font-medium ${getServiceTypeColor(customer.serviceType)}">
+                                            ${getServiceTypeIcon(customer.serviceType)} ${customer.serviceType}
+                                        </span>
+                                    </div>
+                                </div>
+                                <div class="flex gap-1">
+                                    <button 
+                                        onclick="editCustomer(${customer.id})"
+                                        class="text-blue-500 hover:text-blue-700 p-2 hover:bg-blue-50 rounded-lg transition-colors"
+                                        title="Edit data"
+                                    >
+                                        ✏️
+                                    </button>
+                                    <button 
+                                        onclick="deleteCustomer(${customer.id})"
+                                        class="text-red-500 hover:text-red-700 p-2 hover:bg-red-50 rounded-lg transition-colors"
+                                        title="Hapus data"
+                                    >
+                                        🗑️
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
+                                <div>
+                                    <span class="text-gray-600">Nomor Pelanggan:</span>
+                                    <div class="flex items-center gap-2 mt-1">
+                                        <div class="font-mono font-semibold text-blue-600 bg-blue-50 px-2 py-1 rounded flex-1">
+                                            ${customer.customerNumber}
+                                        </div>
+                                        <button 
+                                            onclick="copyToClipboard('${customer.customerNumber}', 'Nomor pelanggan')"
+                                            class="text-blue-500 hover:text-blue-700 p-1 hover:bg-blue-50 rounded transition-colors"
+                                            title="Copy nomor pelanggan"
+                                        >
+                                            📋
+                                        </button>
+                                    </div>
+                                </div>
+                                ${customer.phoneNumber ? `
+                                <div>
+                                    <span class="text-gray-600">No. HP:</span>
+                                    <div class="font-semibold text-green-600">${customer.phoneNumber}</div>
+                                </div>
+                                ` : ''}
+                            </div>
+                            
+                            ${customer.notes ? `
+                            <div class="mt-3 text-sm">
+                                <span class="text-gray-600">Catatan:</span>
+                                <div class="text-gray-700 bg-gray-50 px-3 py-2 rounded mt-1">${customer.notes}</div>
+                            </div>
+                            ` : ''}
+                            
+                            <div class="mt-3 text-xs text-gray-500">
+                                Ditambahkan: ${customer.dateAdded}
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+        }
+
+        // Display customers
+        function displayCustomers(dataToShow = customerData) {
+            const container = document.getElementById('customerList');
+            
+            if (dataToShow.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center text-gray-500 py-12">
+                        <svg class="mx-auto h-16 w-16 text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                        </svg>
+                        <p class="text-lg">Belum ada data pelanggan tersimpan</p>
+                        <p class="text-sm">Tambahkan data pelanggan pertama Anda!</p>
+                        <button onclick="switchTab('tambah')" class="mt-4 bg-blue-500 text-white px-6 py-2 rounded-lg hover:bg-blue-600 transition-colors">
+                            ➕ Tambah Data Sekarang
+                        </button>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = dataToShow.map(customer => `
+                <div class="border-2 border-gray-100 rounded-lg p-4 hover:border-blue-300 transition-colors fade-in">
+                    <div class="flex justify-between items-start mb-3">
+                        <div class="flex-1">
+                            <h3 class="font-semibold text-lg text-gray-800">${customer.name}</h3>
+                            <div class="flex items-center mt-1">
+                                <span class="inline-block px-3 py-1 rounded-full text-sm font-medium ${getServiceTypeColor(customer.serviceType)}">
+                                    ${getServiceTypeIcon(customer.serviceType)} ${customer.serviceType}
+                                </span>
+                            </div>
+                        </div>
+                        <div class="flex gap-1">
+                            <button 
+                                onclick="editCustomer(${customer.id})"
+                                class="text-blue-500 hover:text-blue-700 p-2 hover:bg-blue-50 rounded-lg transition-colors"
+                                title="Edit data"
+                            >
+                                ✏️
+                            </button>
+                            <button 
+                                onclick="deleteCustomer(${customer.id})"
+                                class="text-red-500 hover:text-red-700 p-2 hover:bg-red-50 rounded-lg transition-colors"
+                                title="Hapus data"
+                            >
+                                🗑️
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
+                        <div>
+                            <span class="text-gray-600">Nomor Pelanggan:</span>
+                            <div class="flex items-center gap-2 mt-1">
+                                <div class="font-mono font-semibold text-blue-600 bg-blue-50 px-2 py-1 rounded flex-1">
+                                    ${customer.customerNumber}
+                                </div>
+                                <button 
+                                    onclick="copyToClipboard('${customer.customerNumber}', 'Nomor pelanggan')"
+                                    class="text-blue-500 hover:text-blue-700 p-1 hover:bg-blue-50 rounded transition-colors"
+                                    title="Copy nomor pelanggan"
+                                >
+                                    📋
+                                </button>
+                            </div>
+                        </div>
+                        ${customer.phoneNumber ? `
+                        <div>
+                            <span class="text-gray-600">No. HP:</span>
+                            <div class="font-semibold text-green-600">${customer.phoneNumber}</div>
+                        </div>
+                        ` : ''}
+                    </div>
+                    
+                    ${customer.notes ? `
+                    <div class="mt-3 text-sm">
+                        <span class="text-gray-600">Catatan:</span>
+                        <div class="text-gray-700 bg-gray-50 px-3 py-2 rounded mt-1">${customer.notes}</div>
+                    </div>
+                    ` : ''}
+                    
+                    <div class="mt-3 text-xs text-gray-500">
+                        Ditambahkan: ${customer.dateAdded}
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Helper functions for service type styling
+        function getServiceTypeColor(type) {
+            const colors = {
+                'PLN': 'bg-yellow-100 text-yellow-800',
+                'BPJS': 'bg-green-100 text-green-800',
+                'PDAM': 'bg-blue-100 text-blue-800',
+                'Telkom': 'bg-purple-100 text-purple-800',
+                'Internet': 'bg-indigo-100 text-indigo-800',
+                'Gas': 'bg-red-100 text-red-800',
+                'Lainnya': 'bg-gray-100 text-gray-800'
+            };
+            return colors[type] || 'bg-gray-100 text-gray-800';
+        }
+
+        function getServiceTypeIcon(type) {
+            const icons = {
+                'PLN': '⚡',
+                'BPJS': '🏥',
+                'PDAM': '💧',
+                'Telkom': '📞',
+                'Internet': '🌐',
+                'Gas': '🔥',
+                'Lainnya': '📋'
+            };
+            return icons[type] || '📋';
+        }
+
+        // Delete customer
+        function deleteCustomer(id) {
+            if (isLoading) {
+                showMessage('⏳ Tunggu proses sebelumnya selesai...', 'info');
+                return;
+            }
+            
+            // Convert id to string for comparison since HTML attributes are strings
+            const customerId = String(id);
+            const customerToDelete = customerData.find(c => String(c.id) === customerId);
+            
+            if (!customerToDelete) {
+                showMessage('❌ Data tidak ditemukan', 'error');
+                console.log('ID yang dicari:', customerId, 'Data tersedia:', customerData.map(c => ({id: c.id, name: c.name})));
+                return;
+            }
+            
+            if (confirm(`Apakah Anda yakin ingin menghapus data pelanggan "${customerToDelete.name}"?\n\nData akan dihapus dari Google Sheets secara permanen!`)) {
+                deleteFromGoogleSheets(customerId, customerToDelete.name);
+            }
+        }
+
+        // Delete all data from Google Sheets
+        function deleteAllData() {
+            if (customerData.length === 0) {
+                showMessage('❌ Tidak ada data untuk dihapus', 'info');
+                return;
+            }
+
+            const totalData = customerData.length;
+            const confirmMessage = `⚠️ PERINGATAN!\n\nAnda akan menghapus SEMUA ${totalData} data pelanggan dari Google Sheets!\n\nData yang dihapus:\n- Semua nama pelanggan\n- Semua nomor pelanggan\n- Semua catatan\n\nTindakan ini TIDAK DAPAT DIBATALKAN!\n\nKetik "HAPUS SEMUA" untuk konfirmasi:`;
+            
+            const userInput = prompt(confirmMessage);
+            
+            if (userInput === 'HAPUS SEMUA') {
+                // Create backup before deleting
+                const dataStr = JSON.stringify(customerData, null, 2);
+                const dataBlob = new Blob([dataStr], {type: 'application/json'});
+                const url = URL.createObjectURL(dataBlob);
+                
+                const link = document.createElement('a');
+                link.href = url;
+                link.download = `BACKUP-SEBELUM-HAPUS-${new Date().toISOString().split('T')[0]}-${Date.now()}.json`;
+                link.click();
+                URL.revokeObjectURL(url);
+                
+                // Delete all data from Google Sheets
+                deleteAllFromGoogleSheets(totalData);
+            } else if (userInput !== null) {
+                showMessage('❌ Konfirmasi salah. Data tidak dihapus.', 'error');
+            }
+        }
+
+        function deleteAllFromGoogleSheets(totalData) {
+            const url = localStorage.getItem('googleSheetsUrl');
+            if (!url) {
+                showMessage('❌ URL Google Apps Script tidak ditemukan', 'error');
+                return;
+            }
+
+            showLoading('Menghapus semua data dari Google Sheets...');
+            const requestData = { action: 'deleteAll' };
+
+            fetch(url, {
+                method: 'POST',
+                headers: { 'Content-Type': 'text/plain' },
+                body: JSON.stringify(requestData)
+            })
+            .then(response => {
+                if (!response.ok) throw new Error(`HTTP ${response.status}`);
+                return response.text();
+            })
+            .then(text => {
+                try {
+                    const result = JSON.parse(text);
+                    if (result.success) {
+                        // Clear local array and refresh display
+                        customerData = [];
+                        displayCustomers();
+                        updateTotalCount();
+                        clearSearch();
+                        hideLoading();
+                        showMessage(`🗑️ Semua ${totalData} data berhasil dihapus dari Google Sheets! Backup tersimpan.`, 'success');
+                    } else {
+                        throw new Error(result.error || 'Gagal hapus semua data');
+                    }
+                } catch (parseError) {
+                    hideLoading();
+                    showMessage('❌ Error menghapus semua data, cek Google Apps Script', 'error');
+                }
+            })
+            .catch(error => {
+                hideLoading();
+                showMessage('❌ Gagal menghapus semua data dari Google Sheets', 'error');
+                console.error('Delete all error:', error);
+            });
+        }
+
+        // Edit customer
+        function editCustomer(id) {
+            // Convert id to string for comparison since HTML attributes are strings
+            const customerId = String(id);
+            const customer = customerData.find(c => String(c.id) === customerId);
+            if (!customer) {
+                showMessage('❌ Data pelanggan tidak ditemukan', 'error');
+                console.log('ID yang dicari:', customerId, 'Data tersedia:', customerData.map(c => ({id: c.id, name: c.name})));
+                return;
+            }
+
+            // Switch to tambah tab
+            switchTab('tambah');
+            
+            // Fill form with existing data
+            document.getElementById('customerName').value = customer.name;
+            document.getElementById('serviceType').value = customer.serviceType;
+            document.getElementById('customerNumber').value = customer.customerNumber;
+            document.getElementById('phoneNumber').value = customer.phoneNumber || '';
+            document.getElementById('notes').value = customer.notes || '';
+
+            // Change form to edit mode
+            const form = document.getElementById('customerForm');
+            const submitButton = form.querySelector('button[type="submit"]');
+            
+            // Store original submit handler
+            const originalHandler = form.onsubmit;
+            
+            // Change button text and color
+            submitButton.innerHTML = '✏️ Update Data Pelanggan';
+            submitButton.className = 'w-full bg-gradient-to-r from-orange-500 to-red-600 text-white py-4 px-6 rounded-lg font-semibold hover:from-orange-600 hover:to-red-700 transition-all duration-200 transform hover:scale-105 text-lg';
+            
+            // Add cancel button
+            const cancelButton = document.createElement('button');
+            cancelButton.type = 'button';
+            cancelButton.innerHTML = '❌ Batal Edit';
+            cancelButton.className = 'w-full bg-gray-500 text-white py-3 px-6 rounded-lg font-semibold hover:bg-gray-600 transition-all duration-200 mt-3';
+            cancelButton.onclick = function() {
+                cancelEdit(originalHandler);
+            };
+            
+            submitButton.parentNode.appendChild(cancelButton);
+            
+            // Replace form handler
+            form.onsubmit = function(e) {
+                e.preventDefault();
+                updateCustomer(id, originalHandler);
+            };
+
+            // Scroll to form
+            form.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            showMessage('✏️ Mode edit aktif. Ubah data dan klik Update', 'info');
+        }
+
+        // Update customer
+        function updateCustomer(id, originalHandler) {
+            if (isLoading) {
+                showMessage('⏳ Tunggu proses sebelumnya selesai...', 'info');
+                return;
+            }
+            
+            const customerId = String(id);
+            const originalCustomer = customerData.find(c => String(c.id) === customerId);
+            
+            const updatedCustomer = {
+                id: customerId,
+                name: document.getElementById('customerName').value.trim(),
+                serviceType: document.getElementById('serviceType').value,
+                customerNumber: document.getElementById('customerNumber').value.trim(),
+                phoneNumber: document.getElementById('phoneNumber').value.trim(),
+                notes: document.getElementById('notes').value.trim(),
+                dateAdded: originalCustomer ? originalCustomer.dateAdded : new Date().toLocaleDateString('id-ID')
+            };
+
+            // Check for duplicate customer number (excluding current customer)
+            const isDuplicate = customerData.some(customer => 
+                String(customer.id) !== customerId &&
+                customer.customerNumber === updatedCustomer.customerNumber && 
+                customer.serviceType === updatedCustomer.serviceType
+            );
+
+            if (isDuplicate) {
+                showMessage('⚠️ Nomor pelanggan sudah ada untuk layanan ini!', 'error');
+                return;
+            }
+
+            // Update in Google Sheets
+            updateInGoogleSheets(updatedCustomer, originalHandler);
+        }
+
+        // Cancel edit mode
+        function cancelEdit(originalHandler) {
+            const form = document.getElementById('customerForm');
+            const submitButton = form.querySelector('button[type="submit"]');
+            
+            // Reset form
+            form.reset();
+            
+            // Restore original button
+            submitButton.innerHTML = '💾 Simpan Data Pelanggan';
+            submitButton.className = 'w-full bg-gradient-to-r from-blue-500 to-indigo-600 text-white py-4 px-6 rounded-lg font-semibold hover:from-blue-600 hover:to-indigo-700 transition-all duration-200 transform hover:scale-105 text-lg';
+            
+            // Remove cancel button
+            const cancelButton = submitButton.parentNode.querySelector('button[type="button"]');
+            if (cancelButton) {
+                cancelButton.remove();
+            }
+            
+            // Restore original handler
+            form.onsubmit = originalHandler;
+            
+            showMessage('❌ Edit dibatalkan', 'info');
+        }
+
+        // Update total count
+        function updateTotalCount() {
+            const count = customerData.length;
+            document.getElementById('totalCount').textContent = `${count} data`;
+            document.getElementById('headerTotalCount').textContent = count;
+            document.getElementById('footerDataCount').textContent = count;
+            updateStats();
+        }
+
+        // Quick search function
+        function quickSearch() {
+            switchTab('cari');
+            document.getElementById('searchInput').focus();
+        }
+
+        // Filter by service type
+        function filterByService() {
+            const selectedService = document.getElementById('filterService').value;
+            let filteredData = customerData;
+            
+            if (selectedService) {
+                filteredData = customerData.filter(customer => customer.serviceType === selectedService);
+            }
+            
+            // Apply current sort
+            const sortBy = document.getElementById('sortBy').value;
+            filteredData = applySorting(filteredData, sortBy);
+            
+            displayCustomers(filteredData);
+            
+            // Update count display
+            const totalElement = document.getElementById('totalCount');
+            if (selectedService) {
+                totalElement.textContent = `${filteredData.length} dari ${customerData.length} data`;
+                totalElement.className = 'bg-orange-100 text-orange-800 px-4 py-2 rounded-full text-sm font-medium';
+            } else {
+                totalElement.textContent = `${customerData.length} data`;
+                totalElement.className = 'bg-blue-100 text-blue-800 px-4 py-2 rounded-full text-sm font-medium';
+            }
+        }
+
+        // Sort data
+        function sortData() {
+            const sortBy = document.getElementById('sortBy').value;
+            const selectedService = document.getElementById('filterService').value;
+            
+            let dataToSort = customerData;
+            if (selectedService) {
+                dataToSort = customerData.filter(customer => customer.serviceType === selectedService);
+            }
+            
+            const sortedData = applySorting(dataToSort, sortBy);
+            displayCustomers(sortedData);
+        }
+
+        // Apply sorting logic
+        function applySorting(data, sortBy) {
+            const sortedData = [...data];
+            
+            switch(sortBy) {
+                case 'newest':
+                    return sortedData.sort((a, b) => new Date(b.dateAdded) - new Date(a.dateAdded));
+                case 'oldest':
+                    return sortedData.sort((a, b) => new Date(a.dateAdded) - new Date(b.dateAdded));
+                case 'name':
+                    return sortedData.sort((a, b) => a.name.localeCompare(b.name));
+                case 'service':
+                    return sortedData.sort((a, b) => a.serviceType.localeCompare(b.serviceType));
+                default:
+                    return sortedData;
+            }
+        }
+
+        // Update statistics
+        function updateStats() {
+            const total = customerData.length;
+            const plnCount = customerData.filter(c => c.serviceType === 'PLN').length;
+            const bpjsCount = customerData.filter(c => c.serviceType === 'BPJS').length;
+            const otherCount = total - plnCount - bpjsCount;
+
+            document.getElementById('totalDataStat').textContent = total;
+            document.getElementById('plnCount').textContent = plnCount;
+            document.getElementById('bpjsCount').textContent = bpjsCount;
+            document.getElementById('otherCount').textContent = otherCount;
+        }
+
+        // Update detail statistics
+        function updateDetailStats() {
+            const container = document.getElementById('detailStats');
+            
+            if (customerData.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center text-gray-500 py-8">
+                        <svg class="mx-auto h-12 w-12 text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+                        </svg>
+                        <p>Statistik akan muncul setelah ada data</p>
+                        <p class="text-sm">Tambahkan beberapa data pelanggan untuk melihat statistik</p>
+                    </div>
+                `;
+                return;
+            }
+
+            // Count by service type
+            const serviceStats = {};
+            customerData.forEach(customer => {
+                serviceStats[customer.serviceType] = (serviceStats[customer.serviceType] || 0) + 1;
+            });
+
+            // Sort by count
+            const sortedServices = Object.entries(serviceStats)
+                .sort(([,a], [,b]) => b - a)
+                .map(([service, count]) => ({ service, count }));
+
+            container.innerHTML = `
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <h4 class="font-semibold text-gray-800 mb-3">📊 Distribusi Layanan</h4>
+                        <div class="space-y-2">
+                            ${sortedServices.map(({service, count}) => {
+                                const percentage = ((count / customerData.length) * 100).toFixed(1);
+                                return `
+                                    <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                                        <div class="flex items-center">
+                                            <span class="text-lg mr-2">${getServiceTypeIcon(service)}</span>
+                                            <span class="font-medium">${service}</span>
+                                        </div>
+                                        <div class="text-right">
+                                            <div class="font-semibold text-blue-600">${count} data</div>
+                                            <div class="text-xs text-gray-500">${percentage}%</div>
+                                        </div>
+                                    </div>
+                                `;
+                            }).join('')}
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <h4 class="font-semibold text-gray-800 mb-3">📅 Informasi Tambahan</h4>
+                        <div class="space-y-3">
+                            <div class="p-3 bg-blue-50 rounded-lg">
+                                <div class="text-sm text-blue-700">Total Data Tersimpan</div>
+                                <div class="text-xl font-bold text-blue-800">${customerData.length} pelanggan</div>
+                            </div>
+                            <div class="p-3 bg-green-50 rounded-lg">
+                                <div class="text-sm text-green-700">Data dengan No. HP</div>
+                                <div class="text-xl font-bold text-green-800">${customerData.filter(c => c.phoneNumber).length} data</div>
+                            </div>
+                            <div class="p-3 bg-purple-50 rounded-lg">
+                                <div class="text-sm text-purple-700">Data dengan Catatan</div>
+                                <div class="text-xl font-bold text-purple-800">${customerData.filter(c => c.notes).length} data</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // Loading indicator functions
+        function showLoading(message = 'Memproses...') {
+            isLoading = true;
+            showMessage(`⏳ ${message}`, 'info');
+        }
+        
+        function hideLoading() {
+            isLoading = false;
+        }
+
+        // Show message
+        function showMessage(message, type) {
+            const container = document.getElementById('messageContainer');
+            const messageDiv = document.createElement('div');
+            
+            const bgColor = type === 'success' ? 'bg-green-500' : 
+                           type === 'error' ? 'bg-red-500' : 'bg-blue-500';
+            
+            messageDiv.className = `${bgColor} text-white px-6 py-3 rounded-lg shadow-lg mb-2 fade-in`;
+            messageDiv.textContent = message;
+            
+            container.appendChild(messageDiv);
+            
+            setTimeout(() => {
+                messageDiv.remove();
+            }, 3000);
+        }
+
+        // Export to JSON (from Google Sheets data)
+        function exportToJSON() {
+            if (customerData.length === 0) {
+                showMessage('❌ Tidak ada data untuk diexport', 'error');
+                return;
+            }
+            
+            const dataStr = JSON.stringify(customerData, null, 2);
+            const dataBlob = new Blob([dataStr], {type: 'application/json'});
+            const url = URL.createObjectURL(dataBlob);
+            
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `data-pelanggan-${new Date().toISOString().split('T')[0]}.json`;
+            link.click();
+            
+            URL.revokeObjectURL(url);
+            showMessage('📄 Data berhasil diexport ke JSON', 'success');
+        }
+
+        // Import from JSON (will add to Google Sheets)
+        function importFromJSON() {
+            document.getElementById('importFile').click();
+        }
+
+        function handleFileImport(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const importedData = JSON.parse(e.target.result);
+                    if (Array.isArray(importedData)) {
+                        if (importedData.length === 0) {
+                            showMessage('❌ File JSON kosong', 'error');
+                            return;
+                        }
+                        
+                        if (!confirm(`Import ${importedData.length} data ke Google Sheets?\n\nData akan ditambahkan ke data yang sudah ada.`)) {
+                            return;
+                        }
+                        
+                        importDataToGoogleSheets(importedData);
+                    } else {
+                        showMessage('❌ Format file tidak valid', 'error');
+                    }
+                } catch (error) {
+                    showMessage('❌ Error membaca file JSON', 'error');
+                }
+            };
+            reader.readAsText(file);
+        }
+
+        function importDataToGoogleSheets(dataArray) {
+            showLoading(`Mengimport ${dataArray.length} data ke Google Sheets...`);
+            
+            let successCount = 0;
+            let errorCount = 0;
+            
+            const importNext = (index) => {
+                if (index >= dataArray.length) {
+                    hideLoading();
+                    loadAllDataFromGoogleSheets(); // Refresh data
+                    showMessage(`✅ Import selesai! ${successCount} berhasil, ${errorCount} gagal`, 'success');
+                    return;
+                }
+                
+                const customer = dataArray[index];
+                // Ensure customer has required fields
+                if (!customer.name || !customer.serviceType || !customer.customerNumber) {
+                    errorCount++;
+                    importNext(index + 1);
+                    return;
+                }
+                
+                // Add missing fields if needed
+                if (!customer.id) customer.id = Date.now() + index;
+                if (!customer.dateAdded) customer.dateAdded = new Date().toLocaleDateString('id-ID');
+                
+                const url = localStorage.getItem('googleSheetsUrl');
+                const requestData = { action: 'add', data: customer };
+                
+                fetch(url, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'text/plain' },
+                    body: JSON.stringify(requestData)
+                })
+                .then(response => response.text())
+                .then(text => {
+                    try {
+                        const result = JSON.parse(text);
+                        if (result.success) {
+                            successCount++;
+                        } else {
+                            errorCount++;
+                        }
+                    } catch (e) {
+                        errorCount++;
+                    }
+                    importNext(index + 1);
+                })
+                .catch(() => {
+                    errorCount++;
+                    importNext(index + 1);
+                });
+            };
+            
+            importNext(0);
+        }
+
+        // Google Sheets functions - Primary database operations
+        function loadAllDataFromGoogleSheets() {
+            const url = localStorage.getItem('googleSheetsUrl');
+            if (!url) {
+                showMessage('❌ URL Google Apps Script tidak ditemukan', 'error');
+                return;
+            }
+
+            showLoading('Memuat data dari Google Sheets...');
+            const requestData = { action: 'get' };
+
+            fetch(url, {
+                method: 'POST',
+                headers: { 'Content-Type': 'text/plain' },
+                body: JSON.stringify(requestData)
+            })
+            .then(response => {
+                if (!response.ok) throw new Error(`HTTP ${response.status}`);
+                return response.text();
+            })
+            .then(text => {
+                try {
+                    const result = JSON.parse(text);
+                    if (result.success && result.data && Array.isArray(result.data)) {
+                        customerData = result.data;
+                        displayCustomers();
+                        updateTotalCount();
+                        hideLoading();
+                        showMessage(`✅ ${result.data.length} data berhasil dimuat dari Google Sheets`, 'success');
+                    } else {
+                        customerData = [];
+                        displayCustomers();
+                        updateTotalCount();
+                        hideLoading();
+                        showMessage('📊 Google Sheets kosong, siap menambah data baru', 'info');
+                    }
+                } catch (parseError) {
+                    hideLoading();
+                    showMessage('❌ Error parsing data dari Google Sheets', 'error');
+                    showScriptUpdateGuide();
+                }
+            })
+            .catch(error => {
+                hideLoading();
+                showMessage('❌ Gagal memuat data dari Google Sheets', 'error');
+                console.error('Load error:', error);
+            });
+        }
+
+        function addToGoogleSheets(customer) {
+            const url = localStorage.getItem('googleSheetsUrl');
+            if (!url) {
+                showMessage('❌ URL Google Apps Script tidak ditemukan', 'error');
+                return;
+            }
+
+            // Check if online
+            if (!isOnline) {
+                // Save offline
+                addToOfflineQueue('add', customer);
+                
+                // Add to local array and refresh display
+                customerData.push(customer);
+                displayCustomers();
+                updateTotalCount();
+                
+                // Reset form
+                document.getElementById('customerForm').reset();
+                showMessage('📱 Data disimpan offline! Akan otomatis sinkron saat online.', 'info');
+                return;
+            }
+
+            showLoading('Menyimpan data ke Google Sheets...');
+            const requestData = { action: 'add', data: customer };
+
+            fetch(url, {
+                method: 'POST',
+                headers: { 'Content-Type': 'text/plain' },
+                body: JSON.stringify(requestData)
+            })
+            .then(response => {
+                if (!response.ok) throw new Error(`HTTP ${response.status}`);
+                return response.text();
+            })
+            .then(text => {
+                try {
+                    const result = JSON.parse(text);
+                    if (result.success) {
+                        // Add to local array and refresh display
+                        customerData.push(customer);
+                        displayCustomers();
+                        updateTotalCount();
+                        
+                        // Reset form
+                        document.getElementById('customerForm').reset();
+                        hideLoading();
+                        showMessage('✅ Data pelanggan berhasil disimpan ke Google Sheets!', 'success');
+                    } else {
+                        throw new Error(result.error || 'Gagal simpan ke Google Sheets');
+                    }
+                } catch (parseError) {
+                    // Network error - save offline
+                    addToOfflineQueue('add', customer);
+                    
+                    // Add to local array and refresh display
+                    customerData.push(customer);
+                    displayCustomers();
+                    updateTotalCount();
+                    
+                    // Reset form
+                    document.getElementById('customerForm').reset();
+                    hideLoading();
+                    showMessage('📱 Koneksi bermasalah, data disimpan offline!', 'info');
+                }
+            })
+            .catch(error => {
+                // Network error - save offline
+                addToOfflineQueue('add', customer);
+                
+                // Add to local array and refresh display
+                customerData.push(customer);
+                displayCustomers();
+                updateTotalCount();
+                
+                // Reset form
+                document.getElementById('customerForm').reset();
+                hideLoading();
+                showMessage('📱 Koneksi bermasalah, data disimpan offline!', 'info');
+                console.error('Add error:', error);
+            });
+        }
+
+        function deleteFromGoogleSheets(id, customerName) {
+            const url = localStorage.getItem('googleSheetsUrl');
+            if (!url) {
+                showMessage('❌ URL Google Apps Script tidak ditemukan', 'error');
+                return;
+            }
+
+            // Find customer data for offline queue
+            const customerToDelete = customerData.find(c => String(c.id) === String(id));
+            
+            // Check if online
+            if (!isOnline) {
+                // Save offline
+                if (customerToDelete) {
+                    addToOfflineQueue('delete', { id: id, name: customerName });
+                    
+                    // Remove from local array and refresh display
+                    customerData = customerData.filter(customer => String(customer.id) !== String(id));
+                    displayCustomers();
+                    updateTotalCount();
+                    
+                    // Refresh search results if search is active
+                    if (currentSearchTerm) {
+                        searchData();
+                    }
+                    
+                    showMessage(`📱 Hapus data ${customerName} disimpan offline!`, 'info');
+                }
+                return;
+            }
+
+            showLoading('Menghapus data dari Google Sheets...');
+            
+            // Enhanced request data with more debugging info
+            const requestData = { 
+                action: 'delete', 
+                id: String(id),
+                timestamp: Date.now(),
+                debug: true
+            };
+
+            console.log('🔍 DEBUG DELETE REQUEST:');
+            console.log('- ID yang akan dihapus:', id);
+            console.log('- Nama pelanggan:', customerName);
+            console.log('- Request data:', requestData);
+            console.log('- URL Google Apps Script:', url);
+
+            fetch(url, {
+                method: 'POST',
+                headers: { 
+                    'Content-Type': 'text/plain',
+                    'Accept': 'application/json'
+                },
+                body: JSON.stringify(requestData)
+            })
+            .then(response => {
+                console.log('📡 RESPONSE INFO:');
+                console.log('- Status:', response.status);
+                console.log('- Status Text:', response.statusText);
+                console.log('- Headers:', response.headers);
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                return response.text();
+            })
+            .then(text => {
+                console.log('📄 RAW RESPONSE:');
+                console.log('- Length:', text.length);
+                console.log('- Content:', text);
+                
+                // Check if response is HTML (indicates script error)
+                if (text.includes('<html') || text.includes('<!DOCTYPE') || text.includes('<script')) {
+                    hideLoading();
+                    console.error('❌ RESPONSE IS HTML - Script Error Detected');
+                    showMessage('❌ Google Apps Script error - perlu update script!', 'error');
+                    showScriptUpdateGuide();
+                    return;
+                }
+                
+                try {
+                    const result = JSON.parse(text);
+                    console.log('✅ PARSED RESULT:', result);
+                    
+                    if (result.success) {
+                        // Remove from local array and refresh display
+                        customerData = customerData.filter(customer => String(customer.id) !== String(id));
+                        displayCustomers();
+                        updateTotalCount();
+                        
+                        // Refresh search results if search is active
+                        if (currentSearchTerm) {
+                            searchData();
+                        }
+                        
+                        hideLoading();
+                        showMessage(`🗑️ Data ${customerName} berhasil dihapus dari Google Sheets!`, 'success');
+                    } else {
+                        hideLoading();
+                        const errorMsg = result.error || 'Error tidak diketahui';
+                        console.error('❌ DELETE FAILED:', result);
+                        
+                        // Specific error handling
+                        if (errorMsg.includes('action tidak dikenali')) {
+                            showMessage('❌ Google Apps Script perlu diupdate! Action "delete" tidak dikenali.', 'error');
+                            showScriptUpdateGuide();
+                        } else {
+                            showMessage(`❌ Gagal hapus: ${errorMsg}`, 'error');
+                        }
+                    }
+                } catch (parseError) {
+                    // Network error - save offline
+                    if (customerToDelete) {
+                        addToOfflineQueue('delete', { id: id, name: customerName });
+                        
+                        // Remove from local array and refresh display
+                        customerData = customerData.filter(customer => String(customer.id) !== String(id));
+                        displayCustomers();
+                        updateTotalCount();
+                        
+                        // Refresh search results if search is active
+                        if (currentSearchTerm) {
+                            searchData();
+                        }
+                    }
+                    
+                    hideLoading();
+                    showMessage(`📱 Koneksi bermasalah, hapus data disimpan offline!`, 'info');
+                }
+            })
+            .catch(error => {
+                // Network error - save offline
+                if (customerToDelete) {
+                    addToOfflineQueue('delete', { id: id, name: customerName });
+                    
+                    // Remove from local array and refresh display
+                    customerData = customerData.filter(customer => String(customer.id) !== String(id));
+                    displayCustomers();
+                    updateTotalCount();
+                    
+                    // Refresh search results if search is active
+                    if (currentSearchTerm) {
+                        searchData();
+                    }
+                }
+                
+                hideLoading();
+                showMessage(`📱 Koneksi bermasalah, hapus data disimpan offline!`, 'info');
+                console.error('Delete error:', error);
+            });
+        }
+
+        function updateInGoogleSheets(updatedCustomer, originalHandler) {
+            const url = localStorage.getItem('googleSheetsUrl');
+            if (!url) {
+                showMessage('❌ URL Google Apps Script tidak ditemukan', 'error');
+                return;
+            }
+
+            // Check if online
+            if (!isOnline) {
+                // Save offline
+                addToOfflineQueue('update', updatedCustomer);
+                
+                // Update local array and refresh display
+                const customerIndex = customerData.findIndex(c => String(c.id) === String(updatedCustomer.id));
+                if (customerIndex !== -1) {
+                    customerData[customerIndex] = updatedCustomer;
+                }
+                displayCustomers();
+                updateTotalCount();
+                
+                // Refresh search results if search is active
+                if (currentSearchTerm) {
+                    searchData();
+                }
+                
+                // Reset form
+                cancelEdit(originalHandler);
+                showMessage('📱 Update data disimpan offline! Akan otomatis sinkron saat online.', 'info');
+                return;
+            }
+
+            showLoading('Mengupdate data di Google Sheets...');
+            const requestData = { action: 'update', data: updatedCustomer };
+
+            fetch(url, {
+                method: 'POST',
+                headers: { 'Content-Type': 'text/plain' },
+                body: JSON.stringify(requestData)
+            })
+            .then(response => {
+                if (!response.ok) throw new Error(`HTTP ${response.status}`);
+                return response.text();
+            })
+            .then(text => {
+                try {
+                    const result = JSON.parse(text);
+                    if (result.success) {
+                        // Update local array and refresh display
+                        const customerIndex = customerData.findIndex(c => String(c.id) === String(updatedCustomer.id));
+                        if (customerIndex !== -1) {
+                            customerData[customerIndex] = updatedCustomer;
+                        }
+                        displayCustomers();
+                        updateTotalCount();
+                        
+                        // Refresh search results if search is active
+                        if (currentSearchTerm) {
+                            searchData();
+                        }
+                        
+                        // Reset form
+                        cancelEdit(originalHandler);
+                        hideLoading();
+                        showMessage('✅ Data pelanggan berhasil diupdate di Google Sheets!', 'success');
+                    } else {
+                        throw new Error(result.error || 'Gagal update di Google Sheets');
+                    }
+                } catch (parseError) {
+                    // Network error - save offline
+                    addToOfflineQueue('update', updatedCustomer);
+                    
+                    // Update local array and refresh display
+                    const customerIndex = customerData.findIndex(c => String(c.id) === String(updatedCustomer.id));
+                    if (customerIndex !== -1) {
+                        customerData[customerIndex] = updatedCustomer;
+                    }
+                    displayCustomers();
+                    updateTotalCount();
+                    
+                    // Refresh search results if search is active
+                    if (currentSearchTerm) {
+                        searchData();
+                    }
+                    
+                    // Reset form
+                    cancelEdit(originalHandler);
+                    hideLoading();
+                    showMessage('📱 Koneksi bermasalah, update data disimpan offline!', 'info');
+                }
+            })
+            .catch(error => {
+                // Network error - save offline
+                addToOfflineQueue('update', updatedCustomer);
+                
+                // Update local array and refresh display
+                const customerIndex = customerData.findIndex(c => String(c.id) === String(updatedCustomer.id));
+                if (customerIndex !== -1) {
+                    customerData[customerIndex] = updatedCustomer;
+                }
+                displayCustomers();
+                updateTotalCount();
+                
+                // Refresh search results if search is active
+                if (currentSearchTerm) {
+                    searchData();
+                }
+                
+                // Reset form
+                cancelEdit(originalHandler);
+                hideLoading();
+                showMessage('📱 Koneksi bermasalah, update data disimpan offline!', 'info');
+                console.error('Update error:', error);
+            });
+        }
+
+        function testConnection() {
+            const url = localStorage.getItem('googleSheetsUrl');
+            if (!url) {
+                showMessage('❌ URL Google Apps Script tidak ditemukan', 'error');
+                return;
+            }
+
+            const statusDiv = document.getElementById('connectionStatus');
+            statusDiv.classList.remove('hidden');
+            statusDiv.className = 'bg-blue-50 p-3 rounded-lg mt-3';
+            statusDiv.innerHTML = '<p class="text-blue-700">🔄 Testing koneksi ke Google Sheets...</p>';
+
+            const testData = { action: 'test' };
+
+            fetch(url, {
+                method: 'POST',
+                headers: { 'Content-Type': 'text/plain' },
+                body: JSON.stringify(testData)
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                return response.text();
+            })
+            .then(text => {
+                try {
+                    const result = JSON.parse(text);
+                    if (result.success) {
+                        statusDiv.className = 'bg-green-50 p-3 rounded-lg mt-3';
+                        statusDiv.innerHTML = '<p class="text-green-700">✅ Koneksi berhasil! Google Sheets siap digunakan.</p>';
+                        showMessage('✅ Koneksi Google Sheets berhasil!', 'success');
+                    } else {
+                        throw new Error(result.error || 'Test gagal');
+                    }
+                } catch (parseError) {
+                    statusDiv.className = 'bg-yellow-50 p-3 rounded-lg mt-3';
+                    statusDiv.innerHTML = `<p class="text-yellow-700">⚠️ Response: ${text.substring(0, 200)}...</p>`;
+                    showMessage('⚠️ Response tidak sesuai format, cek Google Apps Script', 'error');
+                }
+            })
+            .catch(error => {
+                statusDiv.className = 'bg-red-50 p-3 rounded-lg mt-3';
+                statusDiv.innerHTML = `
+                    <p class="text-red-700 mb-2">❌ Koneksi gagal: ${error.message}</p>
+                    <p class="text-red-600 text-sm">Pastikan Google Apps Script sudah di-deploy dengan benar</p>
+                `;
+                showMessage('❌ Koneksi Google Sheets gagal', 'error');
+            });
+        }
+
+        function syncFromGoogleSheets() {
+            loadAllDataFromGoogleSheets();
+        }
+
+        function replaceWithGoogleSheetsData() {
+            loadAllDataFromGoogleSheets();
+        }
+
+        function openGoogleSheets() {
+            showMessage('📊 Cek Google Drive Anda untuk melihat spreadsheet data pelanggan', 'info');
+        }
+
+        function showScriptUpdateGuide() {
+            document.getElementById('scriptUpdateGuide').classList.remove('hidden');
+        }
+
+        function hideScriptGuide() {
+            document.getElementById('scriptUpdateGuide').classList.add('hidden');
+            document.getElementById('scriptCodeDisplay').classList.add('hidden');
+        }
+
+        function showScriptCode() {
+            document.getElementById('scriptCodeDisplay').classList.remove('hidden');
+        }
+
+        function copyScriptCode() {
+            const codeElement = document.getElementById('scriptCode');
+            const textArea = document.createElement('textarea');
+            textArea.value = codeElement.textContent;
+            document.body.appendChild(textArea);
+            textArea.select();
+            document.execCommand('copy');
+            document.body.removeChild(textArea);
+            showMessage('📋 Kode script berhasil dicopy!', 'success');
+        }
+
+        function hideScriptCode() {
+            document.getElementById('scriptCodeDisplay').classList.add('hidden');
+        }
+
+        // Copy to clipboard function
+        function copyToClipboard(text, label = 'Text') {
+            // Try modern clipboard API first
+            if (navigator.clipboard && window.isSecureContext) {
+                navigator.clipboard.writeText(text).then(() => {
+                    showMessage(`📋 ${label} berhasil dicopy: ${text}`, 'success');
+                }).catch(() => {
+                    // Fallback to older method
+                    fallbackCopyToClipboard(text, label);
+                });
+            } else {
+                // Fallback for older browsers or non-secure contexts
+                fallbackCopyToClipboard(text, label);
+            }
+        }
+
+        function fallbackCopyToClipboard(text, label) {
+            const textArea = document.createElement('textarea');
+            textArea.value = text;
+            textArea.style.position = 'fixed';
+            textArea.style.left = '-999999px';
+            textArea.style.top = '-999999px';
+            document.body.appendChild(textArea);
+            textArea.focus();
+            textArea.select();
+            
+            try {
+                document.execCommand('copy');
+                showMessage(`📋 ${label} berhasil dicopy: ${text}`, 'success');
+            } catch (err) {
+                showMessage(`❌ Gagal copy ${label}`, 'error');
+            }
+            
+            document.body.removeChild(textArea);
+        }
+    </script>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9819c28e802699c5',t:'MTc1ODI5MjAwNi4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
